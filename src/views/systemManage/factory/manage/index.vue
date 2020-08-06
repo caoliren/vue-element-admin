@@ -77,7 +77,7 @@ export default {
             console.log(row)
             row = JSON.stringify(row)
             this.$router.push({
-                path: "/systemManage/factory/insert",
+                path: "/system/factory/insert",
                 query: {
                     update: row,
                 },
@@ -113,7 +113,7 @@ export default {
         },
         toInset() {
             this.$router.push({
-                path: "/systemManage/factory/insert",
+                path: "/system/factory/insert",
             })
         },
     },
