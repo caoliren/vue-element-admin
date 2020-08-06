@@ -70,7 +70,7 @@ export default {
                             type: "success",
                         })
                         _this.$router.push({
-                            path: "/systemManage/factory/manage",
+                            path: "/system/factory/manage",
                         })
                     }
                 })
@@ -87,7 +87,7 @@ export default {
                                 type: "success",
                             })
                             _this.$router.push({
-                                path: "/systemManage/factory/manage",
+                                path: "/system/factory/manage",
                             })
                         }
                     })

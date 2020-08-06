@@ -127,7 +127,7 @@ export default {
                             type: "success",
                         })
                         _this.$router.push({
-                            path: "/systemManage/user/manage",
+                            path: "/system/user/manage",
                         })
                     }
                 })
@@ -147,7 +147,7 @@ export default {
                                 type: "success",
                             })
                             _this.$router.push({
-                                path: "/systemManage/user/manage",
+                                path: "/system/user/manage",
                             })
                         } else {
                             _this.$message.err({
