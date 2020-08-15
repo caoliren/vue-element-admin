@@ -59,15 +59,27 @@ export const constantRoutes = [
  */
 export const asyncRoutes = [
     {
-        path: "/today",
+        path: "/order",
         component: Layout,
-        redirect: "book/today",
+        redirect: "order/index",
         children: [
             {
-                path: "/book/today",
-                component: () => import("@/views/book/create"),
-                name: "book",
-                meta: { title: "今日工单", icon: "" },
+                path: "/order/index",
+                component: () => import("@/views/order/index"),
+                name: "order",
+                meta: { title: "工单管理", icon: "" },
+            },
+        ],
+    },
+    {
+        path: "/custom",
+        component: Layout,
+        children: [
+            {
+                path: "/custom/index",
+                component: () => import("@/views/custom/index"),
+                name: "custom",
+                meta: { title: "客户管理", icon: "" },
             },
         ],
     },

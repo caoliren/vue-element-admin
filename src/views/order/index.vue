@@ -2,6 +2,7 @@
     <div class="g-userManage">
         <div class="g-top">
             <el-input v-model="searchWord" class="u-inp" placeholder="请输入内容" />
+            <el-date-picker v-model="date" class="top__date" type="date" placeholder="选择日期"> </el-date-picker>
             <el-button type="primary" @click="search">搜索</el-button>
             <el-button @click="reset">重置</el-button>
             <el-button class="u-insert" type="primary" @click="toInset">新增</el-button>
@@ -29,6 +30,7 @@ export default {
             list: [],
             originList: [],
             searchWord: "",
+            date: "",
         }
     },
     created() {
@@ -129,6 +131,10 @@ export default {
 }
 .g-top .u-inp {
     width: 250px;
+    margin-right: 20px;
+}
+
+.top__date {
     margin-right: 20px;
 }
 </style>
