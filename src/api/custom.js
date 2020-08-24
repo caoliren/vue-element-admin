@@ -102,3 +102,11 @@ export function deleteBrand(data) {
         data,
     })
 }
+
+export function findBrandDesc(data) {
+    return request({
+        url: "/custom/findBrandDesc",
+        method: "post",
+        data,
+    })
+}

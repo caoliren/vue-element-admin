@@ -1,24 +1,16 @@
 <template>
     <div class="g-userManage">
         <div class="manage-top">
-            <el-input v-model="searchWord" class="u-inp" placeholder="请输入托工单号/工单号" />
+            <el-input v-model="searchWord" class="u-inp" placeholder="请输入配货单号/托工单号/工单号" />
             <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
             </el-date-picker>
             <el-button type="primary" @click="search">搜索</el-button>
             <el-button @click="reset">重置</el-button>
-            <el-button class="u-insert" type="primary" @click="toInset">新增</el-button>
-            <el-button
-                v-waves
-                :loading="downloadLoading"
-                class="manage-export"
-                type="primary"
-                icon="el-icon-download"
-                @click="handleDownload"
-            >
-                导出
-            </el-button>
+            <el-button class="u-insert" type="primary" @click="doExport">出货</el-button>
         </div>
-        <el-table :data="list" border type="flex" class="manage-table" style="width: 100%">
+        <el-table :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
+            <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
+            <el-table-column min-width="10%" align="center" prop="assignid" label="配货单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
@@ -29,12 +21,7 @@
                 </template>
             </el-table-column>
             <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
-            <el-table-column min-width="8%" align="center" prop="type" label="类别">
-                <template slot-scope="scope">
-                    <span>{{ scope.row.type === 1 ? "良品" : "不良品" }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column min-width="16%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
+            <el-table-column min-width="24%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="status" label="状态" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <i v-if="scope.row.status == -1" class="el-icon-s-opportunity" style="color: #2196f3"></i>
@@ -50,7 +37,7 @@
             </el-table-column>
             <el-table-column min-width="12%" align="center" prop label="操作">
                 <template slot-scope="scope">
-                    <el-button type="text" size="small" @click="update(scope.row)">编辑</el-button>
+                    <el-button type="text" size="small" @click="view(scope.row)">查看</el-button>
                     <el-button type="text" size="small" @click="del(scope.row)">删除</el-button>
                 </template>
             </el-table-column>
@@ -59,7 +46,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { find, search, deleteTuogong } from "@/api/order"
+import { searchAssign, findAssignList, deleteAssign, insertExportOrder } from "@/api/order"
 import { parseTime } from "@/utils"
 import { Loading } from "element-ui"
 
@@ -70,13 +57,13 @@ export default {
             originList: [],
             searchWord: "",
             searchDate: "",
-            downloadLoading: false,
+            checkedList: [],
         }
     },
     created() {
         const _this = this
         Loading.service()
-        find({
+        findAssignList({
             role: _this.roles[0],
         }).then(res => {
             let loadingInstance = Loading.service()
@@ -95,6 +82,16 @@ export default {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
+        // searchWordFocus() {
+        //     this.searchDate = ""
+        // },
+        // searchDateFocus() {
+        //     this.searchWord = ""
+        // },
+        check(list) {
+            console.log("勾选", list)
+            this.checkedList = list
+        },
         dateChange(date) {
             this.searchDate = parseTime(date).split(" ")[0]
         },
@@ -115,7 +112,7 @@ export default {
                 }
             }
             Loading.service()
-            search({
+            searchAssign({
                 word,
                 isTime,
                 role: _this.roles[0],
@@ -142,11 +139,11 @@ export default {
             this.searchWord = ""
             this.searchDate = ""
         },
-        update(row) {
+        view(row) {
             console.log(row.id)
             // row = JSON.stringify(row)
             this.$router.push({
-                path: "/order/edit",
+                path: "/assign/view",
                 query: {
                     id: row.id,
                 },
@@ -155,17 +152,20 @@ export default {
         del(row) {
             const _this = this
             _this
-                .$confirm("此操作将删除该托工单, 是否继续?", "提示", {
+                .$confirm("此操作将删除该配货单, 是否继续?", "提示", {
                     confirmButtonText: "确定",
                     cancelButtonText: "取消",
                     type: "warning",
                 })
                 .then(() => {
-                    deleteTuogong({
+                    deleteAssign({
                         id: row.id,
                     }).then(res => {
                         if (res.code === 0) {
                             _this.list = _this.list.filter(item => {
+                                return item.id !== row.id
+                            })
+                            _this.originList = _this.originList.filter(item => {
                                 return item.id !== row.id
                             })
                             _this.$message({
@@ -179,34 +179,48 @@ export default {
                     console.log("已取消删除")
                 })
         },
-        toInset() {
-            this.$router.push({
-                path: "/order/insert",
-            })
-        },
-        handleDownload() {
-            this.downloadLoading = true
-            import("@/vendor/Export2Excel").then(excel => {
-                const tHeader = ["托工单号", "工单号", "料号", "号头", "委托数量", "类别", "制程说明", "状态", "部门"]
-                const filterVal = ["tuogongid", "gongid", "liaoid", "haotou", "weituonum", "type", "desc", "status", "branch"]
-                const data = this.formatJson(filterVal)
-                excel.export_json_to_excel({
-                    header: tHeader,
-                    data,
-                    filename: "table-list",
-                })
-                this.downloadLoading = false
-            })
-        },
-        formatJson(filterVal) {
-            return this.list.map(v =>
-                filterVal.map(j => {
-                    if (j === "branch") {
-                        return v.customname + "/" + v.branchname
-                    } else {
-                        return v[j]
+        doExport() {
+            const _this = this
+            let checkedList = _this.checkedList
+            let role = checkedList[0].role
+            let canExport = true
+            checkedList.map(item => {
+                // let newItm = Object.assign({}, item)
+                let itId = item.id
+                delete item.id
+                delete item.status
+
+                if (item.role !== role) canExport = false
+
+                deleteAssign({
+                    id: itId,
+                }).then(res => {
+                    if (res.code === 0) {
+                        _this.list = _this.list.filter(it => {
+                            return it.id !== itId
+                        })
+                        _this.originList = _this.originList.filter(it => {
+                            return it.id !== itId
+                        })
                     }
                 })
+                return item
+            })
+            if (!canExport) {
+                _this.$message("同一出货单只能是同一工厂的托工单！")
+                return
+            }
+            insertExportOrder({
+                list: checkedList,
+                operator: _this.name,
+            }).then(
+                res => {
+                    _this.$message({
+                        message: "出单成功",
+                        type: "success",
+                    })
+                },
+                res => {}
             )
         },
     },
@@ -226,8 +240,7 @@ export default {
         width: 250px;
         margin-right: 20px;
     }
-    .u-insert,
-    .manage-export {
+    .u-insert {
         float: right;
     }
 }

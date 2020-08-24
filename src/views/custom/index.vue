@@ -455,6 +455,7 @@ export default {
                         const data = res.data
                         if (!data || !data.length) {
                             _this.$message("未找到相关内容")
+                            _this.list = []
                         } else {
                             _this.list = data
                             _this.$refs.multipleTable.setCurrentRow(_this.list[0])

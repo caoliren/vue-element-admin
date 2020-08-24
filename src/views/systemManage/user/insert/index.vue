@@ -60,7 +60,7 @@ export default {
             updateData: {},
         }
     },
-    created(options) {
+    created() {
         console.log("options", this.$route.query)
         const _this = this
         const query = this.$route.query

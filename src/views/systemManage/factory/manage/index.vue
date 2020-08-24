@@ -63,6 +63,7 @@ export default {
                     const data = res.data
                     if (!data.length) {
                         _this.$message("未找到相关内容")
+                        _this.list = []
                     } else {
                         _this.list = data
                     }
