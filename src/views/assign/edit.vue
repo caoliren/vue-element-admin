@@ -6,7 +6,65 @@
                 <div class="insert-tit-wrap">
                     <h6 class="insert-tit">基本信息</h6>
                 </div>
-                <div class="insert-top__row">
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="操作员:" prop="operator">
+                            <span>{{ name }}</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="所属:" prop="role">
+                            <span v-if="roles[0] !== 'admin'">{{ form.role }}</span>
+                            <el-select v-else v-model="form.role" placeholder="请选择">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5">
+                        <el-form-item class="insert-top__wrap" label="录入日期:" prop="deliverytime">
+                            <span>{{ form.writetime }}</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5">
+                        <el-form-item class="insert-top__wrap" label="最后修改日期:" prop="deliverytime">
+                            <span>{{ form.lastedittime }}</span>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工单号:" prop="tuogongid">
+                            <el-input v-model="form.tuogongid" placeholder="请输入托工单号"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工日期:" prop="tuogongtime">
+                            <el-date-picker v-model="form.tuogongtime" type="datetime" placeholder="选择托工日期时间" @change="changeDate">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5">
+                        <el-form-item class="insert-top__wrap" label="交货日期:" prop="deliverytime">
+                            <span>{{ form.deliverytime }}</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5"> </el-col>
+                </el-row>
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工类别:" prop="tuogongtype">
+                            <el-select v-model="form.tuogongtype" placeholder="请选择托工类型" @change="changeTuogongType">
+                                <el-option v-for="item in options2" :key="item.value" :label="item.label" :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="工单状态：" prop="gongstatus">
+                            <span>{{ form.gongstatus === 0 ? "已完成" : form.gongstatus === 1 ? "待出货" : "未完成" }}</span>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <!-- <div class="insert-top__row">
                     <el-form-item class="insert-top__wrap" label="操作员：" prop="operator">
                         <span>{{ name }}</span>
                     </el-form-item>
@@ -44,7 +102,7 @@
                     <el-form-item class="insert-top__wrap" label="工单状态：" prop="gongstatus">
                         <span>{{ form.gongstatus === 0 ? "已完成" : form.gongstatus === 1 ? "待出货" : "未完成" }}</span>
                     </el-form-item>
-                </div>
+                </div> -->
             </div>
             <div class="insert-bot">
                 <div class="insert-tit-wrap">
@@ -575,6 +633,14 @@ export default {
     display: flex;
     height: 36px;
     margin-right: 30px;
+
+    label {
+        width: 100px;
+    }
+
+    input {
+        width: 220px;
+    }
 }
 .insert-top--long {
     width: 115px;

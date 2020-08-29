@@ -6,18 +6,46 @@
             </el-date-picker>
             <el-button type="primary" @click="search">搜索</el-button>
             <el-button @click="reset">重置</el-button> -->
-            <el-button class="stat-export" type="primary" @click="exportOrder">导出</el-button>
+            <el-button class="stat-export" type="primary" @click="exportOrder">出单</el-button>
         </div>
         <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
-            <el-table-column type="index" min-width="15%" align="center" label="序号"></el-table-column>
-            <el-table-column min-width="10%" align="center" prop="stattime" label="盘点日期" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="overdue" label="逾期(单)" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="delivery" label="交期(单)" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="normal" label="正常(单)" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="exportnum" label="完成出货(单)" show-overflow-tooltip />
-            <el-table-column min-width="15%" align="center" prop="operator" label="操作员" show-overflow-tooltip />
+            <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
+            <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
+            <el-table-column min-width="8%" align="center" prop="gongstatus" label="工单状态" show-overflow-tooltip>
+                <template slot-scope="scope">
+                    <span>{{ scope.row.gongstatus === 0 ? "已完成" : scope.row.gongstatus === 1 ? "待出货" : "未完成" }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="good" label="良品" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="bad" label="不良品" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="unassign" label="未分配" show-overflow-tooltip />
+            <el-table-column min-width="14%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="status" label="状态" show-overflow-tooltip>
+                <template slot-scope="scope">
+                    <i v-if="scope.row.status == -1" class="el-icon-s-opportunity" style="color: #2196f3"></i>
+                    <i v-if="scope.row.status == 0" class="el-icon-s-opportunity" style="color: #ffc107"></i>
+                    <i v-if="scope.row.status == 1" class="el-icon-s-opportunity" style="color: #f44336"></i>
+                    <span>{{ scope.row.status }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column min-width="10%" align="center" prop="branch" label="部门" show-overflow-tooltip>
+                <template slot-scope="scope">
+                    <span>{{ scope.row.customname + "/" + scope.row.branchname }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column min-width="12%" align="center" prop label="操作">
+                <template slot-scope="scope">
+                    <el-button type="text" size="small" @click="doAssign(scope.row)">分配</el-button>
+                    <!-- <el-button type="text" size="small" @click="toUpdate(scope.row)">编辑</el-button>
+                    <el-button type="text" size="small" @click="del(scope.row)">删除</el-button> -->
+                </template>
+            </el-table-column>
         </el-table>
+
         <el-pagination
             v-show="total > 0"
             class="pagination-box"
@@ -30,14 +58,46 @@
             :total="total"
         >
         </el-pagination>
+
+        <el-dialog :title="dialogTit" :visible.sync="dialogFormVisible">
+            <el-form
+                ref="dataForm1"
+                :rules="rules"
+                :model="assignData"
+                label-position="left"
+                label-width="100px"
+                style="width: 400px; margin-left:50px;"
+            >
+                <el-form-item label="委托总数" prop="weituonum">
+                    <span>{{ assignData.weituonum }}</span>
+                </el-form-item>
+                <el-form-item label="良品" prop="good">
+                    <el-input v-model="assignData.good" @input="calcUnassign" />
+                </el-form-item>
+                <el-form-item label="不良品" prop="bad">
+                    <el-input v-model="assignData.bad" @input="calcUnassign" />
+                </el-form-item>
+                <el-form-item label="未分配" prop="unassign">
+                    <span>{{ assignData.unassign }}</span>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">
+                    取消
+                </el-button>
+                <el-button type="primary" @click="assignConfirm">
+                    确定
+                </el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { findStatHistory, search } from "@/api/order"
+import { statList, search, deleteTuogong, insertAssignOrder } from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
-import { Loading } from "element-ui"
+// import { Loading } from "element-ui"
 
 export default {
     data() {
@@ -49,6 +109,7 @@ export default {
             currentId: null,
             searchWord: "",
             searchDate: "",
+            dialogTit: "配单",
             dialogFormVisible: false,
             checkedList: [],
             total: 0,
@@ -60,31 +121,14 @@ export default {
                 bad: 0,
                 unassign: 0,
             },
-            // rules: {
-            //     good: [{ required: true, message: "请输入良品数量", trigger: "change" }],
-            //     bad: [{ required: true, message: "请输入不良品数量", trigger: "change" }],
-            // },
+            rules: {
+                good: [{ required: true, message: "请输入良品数量", trigger: "change" }],
+                bad: [{ required: true, message: "请输入不良品数量", trigger: "change" }],
+            },
         }
     },
     created() {
         this.getList(true)
-        // const _this = this
-        // let status = this.$route.query.status
-        // Loading.service()
-        // findStatHistory({
-        //     role: _this.roles[0],
-        // }).then(res => {
-        //     let loadingInstance = Loading.service()
-        //     _this.$nextTick(() => {
-        //         // 以服务的方式调用的 Loading 需要异步关闭
-        //         loadingInstance.close()
-        //     })
-        //     console.log("盘点记录", res)
-        //     if (res.code === 0) {
-        //         _this.list = res.data
-        //         _this.originList = res.data
-        //     }
-        // })
     },
     computed: {
         ...mapGetters(["name", "roles"]),
@@ -103,9 +147,11 @@ export default {
         },
         getList(isInit) {
             const _this = this
+            let status = this.$route.query.status
             this.loading = true
-            findStatHistory({
+            statList({
                 role: _this.roles[0],
+                status,
                 page: _this.currentPage,
             }).then(res => {
                 _this.loading = false
@@ -113,7 +159,6 @@ export default {
                     let data = res.data
                     _this.list = data.data
                     if (isInit) _this.originList = data.data
-
                     _this.total = data.total
                     _this.originTotal = data.total
                 }
@@ -129,7 +174,7 @@ export default {
         dateChange(date) {
             this.searchDate = parseTime(date).split(" ")[0]
         },
-        searchFnc(fromSearchBtn) {
+        search() {
             const _this = this
             let isTime = false
             let word = ""
@@ -141,44 +186,33 @@ export default {
             } else {
                 word = _this.searchWord
                 if (!word.trim()) {
-                    _this.reset()
+                    _this.list = _this.originList
                     return
                 }
             }
-            if (!this.modeSearch) {
-                this.modeSearch = true
-            }
-            if (fromSearchBtn) {
-                this.currentPage = 1
-            }
-            this.loading = true
+            _this.loading = true
             search({
                 word,
                 isTime,
                 role: _this.roles[0],
-                page: _this.currentPage,
             }).then(res => {
+                console.log("托工单查询", res)
                 _this.loading = false
                 if (res.code === 0) {
                     const data = res.data
-                    if (!data.data.length) {
+                    if (!data.length) {
                         _this.$message("未找到相关内容")
                         _this.list = []
-                        _this.total = 0
                     } else {
-                        _this.list = data.data
-                        _this.total = data.total
+                        _this.list = data
                     }
                 }
             })
         },
         reset() {
             this.list = this.originList
-            this.total = this.originTotal
             this.searchWord = ""
             this.searchDate = ""
-            this.modeSearch = false
-            this.currentPage = 1
         },
         doAssign(row) {
             this.currentId = row.id
@@ -228,7 +262,6 @@ export default {
                             item.unassign = assignData.unassign
                             item.gongstatus = gongstatus
                         }
-
                         return item
                     })
                     _this.originList = _this.originList.map(item => {

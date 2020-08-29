@@ -1,18 +1,5 @@
 <template>
-    <div class="chart-box">
-        <!-- <div v-if="stated" class="stat-btn" @click="toStatTotalList">盘点调账</div> -->
-        <el-button v-if="stated" type="primary" class="stat-btn" @click="toStatTotalList">盘点调账</el-button>
-        <div v-else class="stat-wrap" @click="startStat">
-            <img class="stat-start" src="@/assets/icon/icon_pandian.png" />
-            <p class="stat-tip">立即盘点</p>
-        </div>
-        <div class="chart-wrap">
-            <!-- <div class="chart" :style="{ height: height, width: width }">
-
-            </div> -->
-            <pie-chart ref="pie" />
-        </div>
-    </div>
+    <div :class="className" :style="{ height: height, width: width }" />
 </template>
 
 <script>
@@ -20,13 +7,11 @@ import { mapGetters } from "vuex"
 import { stat } from "@/api/order"
 import echarts from "echarts"
 require("echarts/theme/macarons") // echarts theme
-import resize from "./mixins/resize"
+import resize from "../mixins/resize"
 import { Loading } from "element-ui"
-import PieChart from "./components/PieChart"
 
 export default {
     mixins: [resize],
-    components: { PieChart },
     props: {
         className: {
             type: String,
@@ -38,18 +23,24 @@ export default {
         },
         height: {
             type: String,
-            default: "700px",
+            default: "800px",
         },
     },
     data() {
         return {
             chart: null,
-            // list: [],
-            stated: false,
+            list: [],
         }
     },
-    created() {},
-    mounted() {},
+    mounted() {
+        const _this = this
+        this.$on("init", () => {
+            _this.fetchData()
+        })
+        // this.$nextTick(() => {
+        //   this.initChart()
+        // })
+    },
     beforeDestroy() {
         if (!this.chart) {
             return
@@ -61,33 +52,30 @@ export default {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
-        startStat() {
+        fetchData() {
             const _this = this
-
-            this.$refs.pie.$emit("init")
-            this.stated = true
-
-            // Loading.service()
-            // stat({
-            //     role: _this.roles[0],
-            //     operator: _this.name,
-            // }).then(res => {
-            //     let loadingInstance = Loading.service()
-            //     _this.$nextTick(() => {
-            //         // 以服务的方式调用的 Loading 需要异步关闭
-            //         loadingInstance.close()
-            //     })
-            //     console.log("数据盘点", res)
-            //     if (res.code === 0) {
-            //         _this.list = res.data
-            //         _this.stated = true
-            //         _this.$nextTick(() => {
-            //             _this.initChart()
-            //         })
-            //     }
-            // })
+            console.log(111)
+            Loading.service()
+            stat({
+                role: _this.roles[0],
+                operator: _this.name,
+            }).then(res => {
+                let loadingInstance = Loading.service()
+                _this.$nextTick(() => {
+                    // 以服务的方式调用的 Loading 需要异步关闭
+                    loadingInstance.close()
+                })
+                console.log("数据盘点", res)
+                if (res.code === 0) {
+                    _this.list = res.data
+                    _this.$nextTick(() => {
+                        _this.initChart()
+                    })
+                }
+            })
         },
         initChart() {
+            console.log(2222)
             const _this = this
             let list = _this.list
             this.chart = echarts.init(this.$el, "macarons")
@@ -141,41 +129,6 @@ export default {
                 ],
             })
         },
-        toStatTotalList() {
-            this.$router.push("/stat/statTotalList")
-        },
     },
 }
 </script>
-<style lang="scss">
-.chart-box {
-    position: relative;
-    height: 1000px;
-    margin-top: 100px;
-}
-.chart-wrap {
-    position: relative;
-    height: 800px;
-}
-.stat-wrap {
-    margin: 100px auto 0;
-    text-align: center;
-}
-.stat-start {
-    width: 200px;
-    height: 200px;
-}
-.stat-tip {
-    font-size: 14px;
-}
-.stat-btn {
-    position: absolute;
-    right: 40px;
-    top: 20px;
-    z-index: 2;
-    /* width: 100px;
-    height: 30px;
-    color: #fff;
-    background: chartreuse; */
-}
-</style>

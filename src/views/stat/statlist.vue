@@ -8,7 +8,7 @@
             <el-button @click="reset">重置</el-button> -->
             <el-button class="stat-export" type="primary" @click="exportOrder">出单</el-button>
         </div>
-        <el-table :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
+        <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
@@ -45,6 +45,19 @@
                 </template>
             </el-table-column>
         </el-table>
+
+        <el-pagination
+            v-show="total > 0"
+            class="pagination-box"
+            background
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page.sync="currentPage"
+            :page-size="10"
+            layout="total, prev, pager, next, jumper"
+            :total="total"
+        >
+        </el-pagination>
 
         <el-dialog :title="dialogTit" :visible.sync="dialogFormVisible">
             <el-form
@@ -84,19 +97,24 @@ import { mapGetters } from "vuex"
 import { statForStatus, search, deleteTuogong, insertAssignOrder } from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
-import { Loading } from "element-ui"
+// import { Loading } from "element-ui"
 
 export default {
     data() {
         return {
             list: [],
             originList: [],
+            originTotal: 0,
+            modeSearch: false,
             currentId: null,
             searchWord: "",
             searchDate: "",
             dialogTit: "配单",
             dialogFormVisible: false,
             checkedList: [],
+            total: 0,
+            loading: false,
+            currentPage: 1,
             assignData: {
                 weituonum: 0,
                 good: 0,
@@ -110,29 +128,42 @@ export default {
         }
     },
     created() {
-        const _this = this
-        let status = this.$route.query.status
-        Loading.service()
-        statForStatus({
-            role: _this.roles[0],
-            status,
-        }).then(res => {
-            let loadingInstance = Loading.service()
-            _this.$nextTick(() => {
-                // 以服务的方式调用的 Loading 需要异步关闭
-                loadingInstance.close()
-            })
-            console.log("工厂管理", res)
-            if (res.code === 0) {
-                _this.list = res.data
-                _this.originList = res.data
-            }
-        })
+        this.getList(true)
     },
     computed: {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
+        handleSizeChange(val) {
+            console.log(`每页 ${val} 条`)
+        },
+        handleCurrentChange(val) {
+            console.log(`当前页: ${val}`)
+            if (this.modeSearch) {
+                this.searchFnc()
+            } else {
+                this.getList()
+            }
+        },
+        getList(isInit) {
+            const _this = this
+            let status = this.$route.query.status
+            this.loading = true
+            statForStatus({
+                role: _this.roles[0],
+                status,
+                page: _this.currentPage,
+            }).then(res => {
+                _this.loading = false
+                if (res.code === 0) {
+                    let data = res.data
+                    _this.list = data.data
+                    if (isInit) _this.originList = data.data
+                    _this.total = data.total
+                    _this.originTotal = data.total
+                }
+            })
+        },
         calcUnassign() {
             this.assignData.unassign = this.assignData.weituonum - this.assignData.good - this.assignData.bad
         },
@@ -159,18 +190,14 @@ export default {
                     return
                 }
             }
-            Loading.service()
+            this.loading = true
             search({
                 word,
                 isTime,
                 role: _this.roles[0],
             }).then(res => {
                 console.log("托工单查询", res)
-                let loadingInstance = Loading.service()
-                _this.$nextTick(() => {
-                    // 以服务的方式调用的 Loading 需要异步关闭
-                    loadingInstance.close()
-                })
+                _this.loading = false
                 if (res.code === 0) {
                     const data = res.data
                     if (!data.length) {
@@ -205,7 +232,10 @@ export default {
             let id = _this.currentId
             let assignData = _this.assignData
             let gongstatus = -1
-            Loading.service()
+            if (assignData.unassign < 0) {
+                _this.$message("未分配数量不能为负数！")
+                return
+            }
             _this.$refs["dataForm1"].validate(valid => {
                 if (valid) {
                     let info = {
@@ -221,12 +251,9 @@ export default {
                         id,
                         info,
                     }
+                    _this.loading = true
                     update(data).then(res => {
-                        let loadingInstance = Loading.service()
-                        _this.$nextTick(() => {
-                            // 以服务的方式调用的 Loading 需要异步关闭
-                            loadingInstance.close()
-                        })
+                        _this.loading = false
                     })
                     _this.list = _this.list.map(item => {
                         if (item.id == id) {

@@ -2,7 +2,15 @@ import request from "@/utils/request"
 
 export function findTodayList(data) {
     return request({
-        url: "/order/findTodayList",
+        url: "/today/findTodayList",
+        method: "post",
+        data,
+    })
+}
+
+export function searchToday(data) {
+    return request({
+        url: "/today/searchToday",
         method: "post",
         data,
     })
@@ -18,7 +26,7 @@ export function find(data) {
 
 export function findStatHistory(data) {
     return request({
-        url: "/order/findStatHistory",
+        url: "/stat/findStatHistory",
         method: "post",
         data,
     })
@@ -26,7 +34,7 @@ export function findStatHistory(data) {
 
 export function findAssignList(data) {
     return request({
-        url: "/order/findAssignList",
+        url: "/assign/findAssignList",
         method: "post",
         data,
     })
@@ -34,7 +42,7 @@ export function findAssignList(data) {
 
 export function findExportList(data) {
     return request({
-        url: "/order/findExportList",
+        url: "/export/findExportList",
         method: "post",
         data,
     })
@@ -42,7 +50,7 @@ export function findExportList(data) {
 
 export function findAssign(data) {
     return request({
-        url: "/order/findAssign",
+        url: "/assign/findAssign",
         method: "post",
         data,
     })
@@ -58,7 +66,7 @@ export function findTuogong(data) {
 
 export function findExport(data) {
     return request({
-        url: "/order/findExport",
+        url: "/export/findExport",
         method: "post",
         data,
     })
@@ -74,7 +82,7 @@ export function insert(data) {
 
 export function insertAssignOrder(data) {
     return request({
-        url: "/order/insertAssignOrder",
+        url: "/assign/insertAssignOrder",
         method: "post",
         data,
     })
@@ -82,7 +90,7 @@ export function insertAssignOrder(data) {
 
 export function insertExportOrder(data) {
     return request({
-        url: "/order/insertExportOrder",
+        url: "/export/insertExportOrder",
         method: "post",
         data,
     })
@@ -98,7 +106,7 @@ export function search(data) {
 
 export function searchAssign(data) {
     return request({
-        url: "/order/searchAssign",
+        url: "/assign/searchAssign",
         method: "post",
         data,
     })
@@ -106,7 +114,7 @@ export function searchAssign(data) {
 
 export function searchExport(data) {
     return request({
-        url: "/order/searchExport",
+        url: "/export/searchExport",
         method: "post",
         data,
     })
@@ -122,7 +130,7 @@ export function deleteTuogong(data) {
 
 export function deleteAssign(data) {
     return request({
-        url: "/order/deleteAssign",
+        url: "/assign/deleteAssign",
         method: "post",
         data,
     })
@@ -138,7 +146,7 @@ export function update(data) {
 
 export function updateAssign(data) {
     return request({
-        url: "/order/updateAssign",
+        url: "/assign/updateAssign",
         method: "post",
         data,
     })
@@ -146,7 +154,7 @@ export function updateAssign(data) {
 
 export function stat(data) {
     return request({
-        url: "/order/stat",
+        url: "/stat/stat",
         method: "post",
         data,
     })
@@ -154,7 +162,15 @@ export function stat(data) {
 
 export function statForStatus(data) {
     return request({
-        url: "/order/statForStatus",
+        url: "/stat/statForStatus",
+        method: "post",
+        data,
+    })
+}
+
+export function statList(data) {
+    return request({
+        url: "/stat/statList",
         method: "post",
         data,
     })

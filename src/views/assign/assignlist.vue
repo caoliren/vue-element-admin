@@ -4,12 +4,16 @@
             <el-input v-model="searchWord" class="u-inp" placeholder="请输入配货单号/托工单号/工单号" />
             <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
             </el-date-picker>
-            <el-button type="primary" @click="search">搜索</el-button>
+            <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
             <el-button @click="reset">重置</el-button>
             <el-button class="u-insert" type="primary" @click="doExport">出货</el-button>
+            <el-button :loading="downloadLoading" class="manage-export" type="primary" icon="el-icon-download" @click="handleDownload">
+                导出
+            </el-button>
         </div>
-        <el-table :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
+        <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
+            <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="assignid" label="配货单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
@@ -42,60 +46,86 @@
                 </template>
             </el-table-column>
         </el-table>
+        <el-pagination
+            v-show="total > 0"
+            class="pagination-box"
+            background
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page.sync="currentPage"
+            :page-size="10"
+            layout="total, prev, pager, next, jumper"
+            :total="total"
+        >
+        </el-pagination>
     </div>
 </template>
 <script>
 import { mapGetters } from "vuex"
 import { searchAssign, findAssignList, deleteAssign, insertExportOrder } from "@/api/order"
 import { parseTime } from "@/utils"
-import { Loading } from "element-ui"
+// import { Loading } from "element-ui"
 
 export default {
     data() {
         return {
             list: [],
             originList: [],
+            originTotal: 0,
+            modeSearch: false,
             searchWord: "",
             searchDate: "",
             checkedList: [],
+            total: 0,
+            loading: false,
+            currentPage: 1,
+            downloadLoading: false,
         }
     },
     created() {
-        const _this = this
-        Loading.service()
-        findAssignList({
-            role: _this.roles[0],
-        }).then(res => {
-            let loadingInstance = Loading.service()
-            _this.$nextTick(() => {
-                // 以服务的方式调用的 Loading 需要异步关闭
-                loadingInstance.close()
-            })
-            console.log("工厂管理", res)
-            if (res.code === 0) {
-                _this.list = res.data
-                _this.originList = res.data
-            }
-        })
+        this.getList(true)
     },
     computed: {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
-        // searchWordFocus() {
-        //     this.searchDate = ""
-        // },
-        // searchDateFocus() {
-        //     this.searchWord = ""
-        // },
+        handleSizeChange(val) {
+            console.log(`每页 ${val} 条`)
+        },
+        handleCurrentChange(val) {
+            console.log(`当前页: ${val}`)
+            if (this.modeSearch) {
+                this.searchFnc()
+            } else {
+                this.getList()
+            }
+        },
+        getList(isInit) {
+            const _this = this
+            this.loading = true
+            findAssignList({
+                role: _this.roles[0],
+                page: _this.currentPage,
+            }).then(res => {
+                _this.loading = false
+                if (res.code === 0) {
+                    let data = res.data
+                    _this.list = data.data
+                    if (isInit) _this.originList = data.data
+                    _this.total = data.total
+                    _this.originTotal = data.total
+                }
+            })
+        },
         check(list) {
             console.log("勾选", list)
             this.checkedList = list
         },
         dateChange(date) {
+            if (!date) return
             this.searchDate = parseTime(date).split(" ")[0]
         },
-        search() {
+        searchFnc(fromSearchBtn) {
             const _this = this
             let isTime = false
             let word = ""
@@ -107,37 +137,45 @@ export default {
             } else {
                 word = _this.searchWord
                 if (!word.trim()) {
-                    _this.list = _this.originList
+                    // _this.list = _this.originList
+                    _this.reset()
                     return
                 }
             }
-            Loading.service()
+            if (!this.modeSearch) {
+                this.modeSearch = true
+            }
+            if (fromSearchBtn) {
+                this.currentPage = 1
+            }
+            this.loading = true
             searchAssign({
                 word,
                 isTime,
                 role: _this.roles[0],
+                page: _this.currentPage,
             }).then(res => {
-                console.log("托工单查询", res)
-                let loadingInstance = Loading.service()
-                _this.$nextTick(() => {
-                    // 以服务的方式调用的 Loading 需要异步关闭
-                    loadingInstance.close()
-                })
+                _this.loading = false
                 if (res.code === 0) {
                     const data = res.data
-                    if (!data.length) {
+                    if (!data.data.length) {
                         _this.$message("未找到相关内容")
                         _this.list = []
+                        _this.total = 0
                     } else {
-                        _this.list = data
+                        _this.list = data.data
+                        _this.total = data.total
                     }
                 }
             })
         },
         reset() {
             this.list = this.originList
+            this.total = this.originTotal
             this.searchWord = ""
             this.searchDate = ""
+            this.modeSearch = false
+            this.currentPage = 1
         },
         view(row) {
             console.log(row.id)
@@ -184,13 +222,18 @@ export default {
             let checkedList = _this.checkedList
             let role = checkedList[0].role
             let canExport = true
+            checkedList.forEach(item => {
+                if (item.role !== role) canExport = false
+            })
+            if (!canExport) {
+                _this.$message("同一出货单只能是同一工厂的托工单！")
+                return
+            }
             checkedList.map(item => {
                 // let newItm = Object.assign({}, item)
                 let itId = item.id
                 delete item.id
                 delete item.status
-
-                if (item.role !== role) canExport = false
 
                 deleteAssign({
                     id: itId,
@@ -206,10 +249,7 @@ export default {
                 })
                 return item
             })
-            if (!canExport) {
-                _this.$message("同一出货单只能是同一工厂的托工单！")
-                return
-            }
+
             insertExportOrder({
                 list: checkedList,
                 operator: _this.name,
@@ -221,6 +261,69 @@ export default {
                     })
                 },
                 res => {}
+            )
+        },
+        handleDownload() {
+            this.downloadLoading = true
+            import("@/vendor/Export2Excel").then(excel => {
+                const tHeader = [
+                    "序号",
+                    "配货单号",
+                    "托工单号",
+                    "工单号",
+                    "料号",
+                    "号头",
+                    "工单状态",
+                    "委托数量",
+                    "良品",
+                    "不良品",
+                    "未分配",
+                    "单位",
+                    "部门",
+                    "品牌代码",
+                    "制程说明",
+                    "类别",
+                    "状态",
+                    "托工日期",
+                    "交货日期",
+                ]
+                const filterVal = [
+                    "index",
+                    "assignid",
+                    "tuogongid",
+                    "gongid",
+                    "liaoid",
+                    "haotou",
+                    "gongstatus",
+                    "weituonum",
+                    "good",
+                    "bad",
+                    "unassign",
+                    "customname",
+                    "branchname",
+                    "brandname",
+                    "desc",
+                    "type",
+                    "status",
+                    "tuogongtime",
+                    "deliverytime",
+                ]
+                const data = this.formatJson(filterVal)
+                excel.export_json_to_excel({
+                    header: tHeader,
+                    data,
+                    filename: "待出货列表",
+                })
+                this.downloadLoading = false
+            })
+        },
+        formatJson(filterVal) {
+            return this.list.map((v, idx) =>
+                filterVal.map((j, i) => {
+                    v.index = idx + 1
+
+                    return v[j]
+                })
             )
         },
     },
@@ -258,5 +361,9 @@ export default {
     top: 3px;
     margin-right: 4px;
     font-size: 20px;
+}
+
+.manage-export {
+    float: right;
 }
 </style>

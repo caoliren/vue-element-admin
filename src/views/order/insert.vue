@@ -5,7 +5,51 @@
                 <div class="insert-tit-wrap">
                     <h6 class="insert-tit">基本信息</h6>
                 </div>
-                <div class="insert-top__row">
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="操作员：" prop="operator">
+                            <span>{{ name }}</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="所属：" prop="role">
+                            <span v-if="roles[0] !== 'admin'">{{ roles[0] }}</span>
+                            <el-select v-else v-model="form.role" placeholder="请选择">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工单号：" prop="tuogongid">
+                            <el-input v-model="form.tuogongid" placeholder="请输入托工单号"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工日期：" prop="tuogongtime">
+                            <el-date-picker v-model="form.tuogongtime" type="datetime" placeholder="选择托工日期时间" @change="changeDate">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5">
+                        <el-form-item class="insert-top__wrap" label="交货日期：" prop="deliverytime">
+                            <span>{{ form.deliverytime }}</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5"> </el-col>
+                </el-row>
+                <el-row class="insert-top__row" :gutter="20">
+                    <el-col :span="7">
+                        <el-form-item class="insert-top__wrap" label="托工类别：" prop="tuogongtype">
+                            <el-select v-model="form.tuogongtype" placeholder="请选择托工类型" @change="changeTuogongType">
+                                <el-option v-for="item in options2" :key="item.value" :label="item.label" :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+
+                <!-- <div class="insert-top__row">
                     <el-form-item class="insert-top__wrap" label="操作员：" prop="operator">
                         <span>{{ name }}</span>
                     </el-form-item>
@@ -34,7 +78,7 @@
                             <el-option v-for="item in options2" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
-                </div>
+                </div> -->
             </div>
             <div class="insert-bot">
                 <div class="insert-tit-wrap">
@@ -285,7 +329,7 @@ export default {
         find().then(res => {
             if (res.code === 0) {
                 let data = res.data
-                _this.customs = data
+                _this.customs = data.data
             }
         })
 
@@ -331,7 +375,8 @@ export default {
                 pid: id,
             }).then(res => {
                 if (res.code === 0) {
-                    if (!res.data || !res.data.length) {
+                    let data = res.data
+                    if (!data.data || !data.data.length) {
                         _this.newGongOrder.branchid = null
                         _this.newGongOrder.brandid = null
                         _this.branchs = []
@@ -342,8 +387,7 @@ export default {
                                 _this.newGongOrder.customname = item.name
                             }
                         })
-
-                        _this.branchs = res.data
+                        _this.branchs = data.data
                     }
                 }
             })
@@ -354,7 +398,8 @@ export default {
                 pid: id,
             }).then(res => {
                 if (res.code === 0) {
-                    if (!res.data || !res.data.length) {
+                    let data = res.data
+                    if (!data.data || !data.data.length) {
                         _this.newGongOrder.brandid = null
                         _this.brands = []
                     } else {
@@ -363,7 +408,7 @@ export default {
                                 _this.newGongOrder.branchname = item.name
                             }
                         })
-                        _this.brands = res.data
+                        _this.brands = data.data
                     }
                 }
             })
@@ -504,7 +549,15 @@ export default {
 .insert-top__wrap {
     display: flex;
     height: 36px;
-    margin-right: 30px;
+    /* margin-right: 30px; */
+
+    label {
+        width: 100px;
+    }
+
+    input {
+        width: 220px;
+    }
 }
 .insert-top--long {
     width: 115px;

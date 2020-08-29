@@ -30,6 +30,7 @@ service.interceptors.response.use(
         // if the custom code is not 20000, it is judged as an error.
         if (res.code !== 0) {
             if (res.code === -2) {
+                console.log("respone", res)
                 Message({
                     message: "登录状态失效，请重新登录",
                     type: "error",

@@ -79,7 +79,7 @@ export default {
             console.log(row)
             row = JSON.stringify(row)
             this.$router.push({
-                path: "/system/user/insert",
+                path: "/system/user/edit",
                 query: {
                     update: row,
                 },

@@ -24,10 +24,11 @@ export function update(data) {
     })
 }
 
-export function find() {
+export function find(data) {
     return request({
         url: "/custom/find",
-        method: "get",
+        method: "post",
+        data,
     })
 }
 

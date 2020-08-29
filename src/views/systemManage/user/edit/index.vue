@@ -2,11 +2,11 @@
     <div class="g-insertUser">
         <div class="m-sec">
             <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>用户名：</span>
-            <el-input v-model="username" class="u-inp" autocomplete="off" placeholder="请输入用户名" />
+            <el-input v-model="username" class="u-inp" placeholder="请输入用户名" />
         </div>
         <div class="m-sec">
             <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>密码：</span>
-            <el-input v-model="password" class="u-inp f-pass" autocomplete="off" :placeholder="passPlaceholder" show-password />
+            <el-input v-model="password" class="u-inp f-pass" :placeholder="passPlaceholder" show-password />
         </div>
         <div class="m-sec">
             <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>权限：</span>
@@ -63,6 +63,17 @@ export default {
     created() {
         console.log("options", this.$route.query)
         const _this = this
+        const query = this.$route.query
+        if (query.update) {
+            const data = JSON.parse(query.update)
+            this.isUpdate = true
+            this.updateData = data
+            this.username = data.username
+            this.role = data.role
+            this.remark = data.remark
+            this.password = ""
+            this.passPlaceholder = "如需修改密码请在这里输入新密码"
+        }
         findFactoryName()
             .then(res => {
                 if (res.code === 0) {

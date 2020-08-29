@@ -2,7 +2,7 @@
     <div class="g-userManage">
         <div class="g-top">
             <el-input v-model="searchWord" class="u-inp" placeholder="请输入客户名称/品牌代码" />
-            <el-button type="primary" @click="searchFnc">搜索</el-button>
+            <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
             <el-button @click="reset">重置</el-button>
         </div>
         <el-row :gutter="5" type="flex">
@@ -13,6 +13,7 @@
                         <el-button style="float: right; padding: 3px 0" type="text" @click="handleCreate1">添加</el-button>
                     </div>
                     <el-table
+                        v-loading="loading1"
                         ref="multipleTable"
                         :data="list"
                         tooltip-effect="dark"
@@ -43,6 +44,17 @@
                             </template>
                         </el-table-column>
                     </el-table>
+                    <el-pagination
+                        v-show="total1 > 0"
+                        class="pagination-box"
+                        background
+                        @current-change="handleCurrentChange1"
+                        :current-page.sync="currentPage1"
+                        :page-size="10"
+                        layout="total, prev, pager, next, jumper"
+                        :total="total1"
+                    >
+                    </el-pagination>
                 </el-card>
             </el-col>
             <el-col :span="5" :lg="5">
@@ -52,26 +64,40 @@
                         <el-button style="float: right; padding: 3px 0" type="text" @click="handleCreate2">添加</el-button>
                     </div>
                     <el-table
+                        v-loading="loading2"
                         ref="multipleTable2"
                         :data="branch"
                         border
+                        :row-style="rowStyle2"
+                        :cell-style="{ padding: '0' }"
                         tooltip-effect="dark"
                         highlight-current-row
                         @row-click="clickColumn2"
                         style="width: 100%;font-size: 14px;"
                     >
-                        <el-table-column prop="name" label="部门名称" min-width="70%" show-overflow-tooltip>
+                        <el-table-column prop="name" label="部门名称" min-width="74%" show-overflow-tooltip>
                             <template slot-scope="scope">
                                 <div>{{ scope.row.name }}</div>
                             </template>
                         </el-table-column>
-                        <el-table-column label="操作" min-width="30%">
+                        <el-table-column label="操作" min-width="26%">
                             <template slot-scope="scope">
-                                <el-button type="text" @click.stop="handleEdit2(scope.row)">修改</el-button>
+                                <el-button type="text" class="table2__edit" @click.stop="handleEdit2(scope.row)">修改</el-button>
                                 <el-button class="table2__del" type="text" @click.stop="deleteCustom2(scope.row.id)">删除</el-button>
                             </template>
                         </el-table-column>
                     </el-table>
+                    <el-pagination
+                        v-show="total2 > 0"
+                        class="pagination-box"
+                        background
+                        @current-change="handleCurrentChange2"
+                        :current-page.sync="currentPage2"
+                        :page-size="10"
+                        layout="total, prev, pager, next"
+                        :total="total2"
+                    >
+                    </el-pagination>
                 </el-card>
             </el-col>
             <el-col :span="9" :lg="9">
@@ -80,7 +106,15 @@
                         <span>品牌代码</span>
                         <el-button style="float: right; padding: 3px 0" type="text" @click="handleCreate3">添加</el-button>
                     </div>
-                    <el-table ref="multipleTable3" :data="brand" border tooltip-effect="dark" highlight-current-row style="width: 100%;">
+                    <el-table
+                        v-loading="loading3"
+                        ref="multipleTable3"
+                        :data="brand"
+                        border
+                        tooltip-effect="dark"
+                        highlight-current-row
+                        style="width: 100%;"
+                    >
                         <el-table-column prop="code" label="品牌代码" min-width="25%" show-overflow-tooltip>
                             <template slot-scope="scope">
                                 <div>{{ scope.row.code }}</div>
@@ -98,6 +132,17 @@
                             </template>
                         </el-table-column>
                     </el-table>
+                    <el-pagination
+                        v-show="total3 > 0"
+                        class="pagination-box"
+                        background
+                        @current-change="handleCurrentChange3"
+                        :current-page.sync="currentPage3"
+                        :page-size="10"
+                        layout="total, prev, pager, next, jumper"
+                        :total="total3"
+                    >
+                    </el-pagination>
                 </el-card>
             </el-col>
         </el-row>
@@ -202,8 +247,22 @@ import {
 export default {
     data() {
         return {
+            rowStyle2: {
+                height: "30px",
+            },
             list: [],
             originList: [],
+            originTotal: 0,
+            modeSearch: false,
+            total1: 0,
+            total2: 0,
+            total3: 0,
+            loading1: false,
+            loading2: false,
+            loading3: false,
+            currentPage1: 1,
+            currentPage2: 1,
+            currentPage3: 1,
             branch: [],
             brand: [],
             dialogFormVisible: false,
@@ -243,17 +302,48 @@ export default {
         }
     },
     created() {
-        this.fetchData()
+        this.getList(true)
     },
     methods: {
-        fetchData() {
+        handleCurrentChange1(val) {
+            console.log(`当前页: ${val}`)
+            if (this.modeSearch) {
+                this.searchFnc(true)()
+            } else {
+                this.getList()
+            }
+        },
+        handleCurrentChange2(val) {
+            console.log(`当前页: ${val}`)
+            if (this.modeSearch) {
+                this.searchFnc()()
+            } else {
+                this.clickColumn1()
+            }
+        },
+        handleCurrentChange3(val) {
+            console.log(`当前页: ${val}`)
+            if (this.modeSearch) {
+                this.searchFnc()
+            } else {
+                this.clickColumn2({
+                    id: this.currentBranchId,
+                })
+            }
+        },
+        getList(isInit) {
             const _this = this
-            find().then(res => {
-                console.log("客户管理", res)
+            this.loading1 = true
+            find({
+                page: _this.currentPage1,
+            }).then(res => {
+                this.loading1 = false
                 if (res.code === 0) {
                     let data = res.data
-                    _this.list = data
-                    _this.originList = data
+                    _this.list = data.data
+                    if (isInit) _this.originList = data.data
+                    _this.total1 = data.total
+                    _this.originTotal = data.total
                     _this.$refs.multipleTable.setCurrentRow(_this.list[0])
                     _this.clickColumn1(_this.list[0])
                 }
@@ -405,16 +495,24 @@ export default {
         },
         clickColumn1(row) {
             const _this = this
-            this.currentCustomId = row.id
+            let id = row ? row.id : this.currentCustomId
+            if (row) {
+                this.currentCustomId = row.id
+            }
+            this.loading2 = true
             findBranch({
-                pid: row.id,
+                pid: id,
+                page: _this.currentPage2,
             }).then(res => {
+                this.loading2 = false
                 if (res.code === 0) {
-                    if (!res.data || !res.data.length) {
+                    let data = res.data
+                    if (!data.data || !data.data.length) {
                         _this.branch = []
                         _this.brand = []
                     }
-                    _this.branch = res.data
+                    _this.branch = data.data
+                    _this.total2 = data.total
                     _this.$refs.multipleTable2.setCurrentRow(_this.branch[0])
                     _this.clickColumn2(_this.branch[0])
                 }
@@ -428,36 +526,54 @@ export default {
                 return
             }
             this.currentBranchId = row.id
+            this.loading3 = true
             findBrand({
                 pid: row.id,
+                page: _this.currentPage3,
             }).then(res => {
+                this.loading3 = false
                 if (res.code === 0) {
-                    if (!res.data || !res.data.length) {
+                    let data = res.data
+                    if (!data.data || !data.data.length) {
                         _this.brand = []
                     }
-                    _this.brand = res.data
+                    _this.brand = data.data
+                    _this.total3 = data.total
                 }
             })
         },
-        searchFnc() {
+        searchFnc(fromSearchBtn) {
             const _this = this
             let word = _this.searchWord.trim()
             if (!word) {
-                _this.list = _this.originList
+                _this.reset()
                 return
+            }
+            if (!this.modeSearch) {
+                this.modeSearch = true
+            }
+            if (fromSearchBtn) {
+                this.currentPage1 = 1
             }
             search({
                 word,
+                page: _this.currentPage1,
             }).then(
                 res => {
                     console.log("搜索结果", res)
                     if (res.code === 0) {
-                        const data = res.data
-                        if (!data || !data.length) {
+                        let data = res.data
+                        if (!data || !data.data.length) {
                             _this.$message("未找到相关内容")
                             _this.list = []
+                            _this.branch = []
+                            _this.brand = []
+                            _this.total1 = 0
+                            _this.total2 = 0
+                            _this.total3 = 0
                         } else {
-                            _this.list = data
+                            _this.list = data.data
+                            _this.total1 = data.total
                             _this.$refs.multipleTable.setCurrentRow(_this.list[0])
                             _this.clickColumn1(_this.list[0])
                         }
@@ -472,6 +588,13 @@ export default {
         },
         reset() {
             this.list = this.originList
+            this.total1 = this.originTotal
+            this.total2 = 0
+            this.total3 = 0
+            this.modeSearch = false
+            this.currentPage1 = 1
+            this.currentPage2 = 1
+            this.currentPage3 = 1
             this.searchWord = ""
             this.$refs.multipleTable.setCurrentRow(this.list[0])
             this.clickColumn1(this.list[0])
@@ -536,7 +659,6 @@ export default {
                             _this.$refs.multipleTable2.setCurrentRow(_this.branch[0])
                             _this.clickColumn2(_this.branch[0])
                             _this.dialogFormVisible2 = false
-                            // _this.fetchData()
                             _this.$message({
                                 message: "添加成功",
                                 type: "success",
@@ -646,6 +768,11 @@ export default {
 
 .table2__del.el-button {
     margin-left: 0;
+    padding-top: 5px;
+}
+
+.table2__edit.el-button {
+    padding-bottom: 5px;
 }
 
 .clearfix:before,

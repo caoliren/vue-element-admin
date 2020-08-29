@@ -1,12 +1,12 @@
 <template>
     <div class="g-insertFactory">
         <div class="m-sec">
-            <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>工厂名：</span>
-            <el-input v-model="factoryname" class="u-inp" autocomplete="off" placeholder="请输入工厂名" />
+            <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>用户名：</span>
+            <el-input v-model="factoryname" class="u-inp" placeholder="请输入工厂名" />
         </div>
         <div class="m-sec">
             <span class="u-tit"><span class="tit_red" v-if="!isUpdate">*</span>工厂地址：</span>
-            <el-input v-model="address" class="u-inp" autocomplete="off" placeholder="请输入工厂地址" />
+            <el-input v-model="address" class="u-inp" placeholder="请输入工厂地址" />
         </div>
         <div class="m-sec">
             <span class="u-tit">备注：</span>
@@ -31,6 +31,15 @@ export default {
     },
     created() {
         console.log("options", this.$route.query)
+        const query = this.$route.query
+        if (query.update) {
+            const data = JSON.parse(query.update)
+            this.isUpdate = true
+            this.updateData = data
+            this.factoryname = data.factoryname
+            this.address = data.address
+            this.remark = data.remark
+        }
     },
     methods: {
         submit() {
