@@ -119,38 +119,39 @@ export default {
             })
             console.log("工厂管理", res)
             if (res.code === 0) {
-                _this.list = [
-                    {
-                        address: "广东省中山市中山路1号",
-                        assignid: "PH13459183990",
-                        bad: 0,
-                        branchid: 5,
-                        branchname: "部门2",
-                        brandid: 16,
-                        brandname: "111321",
-                        customid: 1,
-                        customname: "客户1客户1客户1客户1",
-                        deliverytime: "2020-08-25T00:00:00.000Z",
-                        desc: "111客户1客户1客户1客户1客户1客户1客户1客户1",
-                        gongid: 1523123,
-                        gongstatus: 1,
-                        good: 153,
-                        haotou: 15,
-                        id: 32,
-                        lastedittime: "2020-08-24T06:34:07.000Z",
-                        liaoid: 15232322323,
-                        linkid: 15,
-                        operator: "admin",
-                        role: "一厂",
-                        tuogongid: "1532412312423",
-                        tuogongtime: "2020-08-23T00:00:00.000Z",
-                        tuogongtype: 1,
-                        type: 1,
-                        unassign: 0,
-                        weituonum: 1523,
-                        writetime: "2020-08-24T06:34:07.000Z",
-                    },
-                ]
+                // _this.list = [
+                //     {
+                //         address: "广东省中山市中山路1号",
+                //         assignid: "PH13459183990",
+                //         bad: 0,
+                //         branchid: 5,
+                //         branchname: "部门2",
+                //         brandid: 16,
+                //         brandname: "111321",
+                //         customid: 1,
+                //         customname: "客户1客户1客户1客户1",
+                //         deliverytime: "2020-08-25T00:00:00.000Z",
+                //         desc: "111客户1客户1客户1客户1客户1客户1客户1客户1",
+                //         gongid: 1523123,
+                //         gongstatus: 1,
+                //         good: 153,
+                //         haotou: 15,
+                //         id: 32,
+                //         lastedittime: "2020-08-24T06:34:07.000Z",
+                //         liaoid: 15232322323,
+                //         linkid: 15,
+                //         operator: "admin",
+                //         role: "一厂",
+                //         tuogongid: "1532412312423",
+                //         tuogongtime: "2020-08-23T00:00:00.000Z",
+                //         tuogongtype: 1,
+                //         type: 1,
+                //         unassign: 0,
+                //         weituonum: 1523,
+                //         writetime: "2020-08-24T06:34:07.000Z",
+                //     },
+                // ]
+                _this.list = res.data
                 _this.originList = res.data
             }
         })

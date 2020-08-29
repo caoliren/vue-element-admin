@@ -71,18 +71,18 @@ export default {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    width: 800px;
+    width: 500px;
     margin: 0 auto;
     text-align: center;
 }
 .dash-item {
-    width: 300px;
-    height: 340px;
+    width: 200px;
+    height: 240px;
     margin-top: 50px;
 
     .dash-item__img {
         display: block;
-        height: 300px;
+        height: 200px;
     }
     .dash-item__title {
         height: 40px;
