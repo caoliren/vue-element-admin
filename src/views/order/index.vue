@@ -11,7 +11,8 @@
                 导出
             </el-button>
         </div>
-        <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%">
+        <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
+            <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
             <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
@@ -23,13 +24,13 @@
                 </template>
             </el-table-column>
             <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
-            <el-table-column min-width="8%" align="center" prop="type" label="类别">
+            <el-table-column min-width="8%" align="center" prop="type" label="类别" sortable>
                 <template slot-scope="scope">
                     <span>{{ scope.row.type === 1 ? "良品" : "不良品" }}</span>
                 </template>
             </el-table-column>
             <el-table-column min-width="14%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
-            <el-table-column min-width="8%" align="center" prop="status" label="状态" show-overflow-tooltip>
+            <el-table-column min-width="8%" align="center" prop="status" label="状态" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <i v-if="scope.row.status == -1" class="el-icon-s-opportunity" style="color: #2196f3"></i>
                     <i v-if="scope.row.status == 0" class="el-icon-s-opportunity" style="color: #ffc107"></i>
@@ -88,16 +89,20 @@ export default {
             //     limit: 10,
             // },
             currentPage: 1,
+            checkedList: [],
         }
     },
     created() {
         this.getList(true)
-        console.log("1", new Date("2020-08-28 00:00:00"))
     },
     computed: {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
+        check(list) {
+            console.log("勾选", list)
+            this.checkedList = list
+        },
         handleSizeChange(val) {
             console.log(`每页 ${val} 条`)
         },
@@ -277,10 +282,17 @@ export default {
             })
         },
         formatJson(filterVal) {
-            return this.list.map((v, idx) =>
+            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+            return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1
-
+                    v.gongstatus === 0
+                        ? (v.gongstatus = "已完成")
+                        : v.gongstatus === 1
+                        ? (v.gongstatus = "待出货")
+                        : (v.gongstatus = "未完成")
+                    v.status === 0 ? (v.status = "交期") : v.status === 1 ? (v.status = "逾期") : (v.status = "正常")
+                    v.type === 1 ? (v.type = "良品") : (v.type = "不良品")
                     return v[j]
                 })
             )

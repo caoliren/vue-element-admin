@@ -48,6 +48,14 @@ export function findExportList(data) {
     })
 }
 
+export function findExportHistory(data) {
+    return request({
+        url: "/export/findExportHistory",
+        method: "post",
+        data,
+    })
+}
+
 export function findAssign(data) {
     return request({
         url: "/assign/findAssign",
@@ -171,6 +179,14 @@ export function statForStatus(data) {
 export function statList(data) {
     return request({
         url: "/stat/statList",
+        method: "post",
+        data,
+    })
+}
+
+export function searchExportId(data) {
+    return request({
+        url: "/export/searchExportId",
         method: "post",
         data,
     })

@@ -473,6 +473,7 @@ export default {
                         data.gongstatus = -1
                         data.good = 0
                         data.bad = 0
+                        data.bad2 = 0
                         data.unassign = data.weituonum
                         let pro = new Promise((resolve, reject) => {
                             insert(data).then(

@@ -57,6 +57,7 @@ export const constantRoutes = [
  * asyncRoutes
  * the routes that need to be dynamically loaded based on user roles
  */
+
 export const asyncRoutes = [
     {
         path: "/today",
@@ -152,6 +153,12 @@ export const asyncRoutes = [
                 component: () => import("@/views/export/index"),
                 name: "export",
                 meta: { title: "出货管理", icon: "" },
+            },
+            {
+                path: "/export/history",
+                component: () => import("@/views/export/history"),
+                name: "exportHistory",
+                meta: { title: "出货历史", icon: "" },
             },
             {
                 path: "/export/view",

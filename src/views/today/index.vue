@@ -24,6 +24,7 @@
             <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="good" label="良品" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="bad" label="不良品" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="bad2" label="不良品2" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="unassign" label="未分配" show-overflow-tooltip />
             <el-table-column min-width="12%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="branch" label="部门" show-overflow-tooltip>
@@ -72,6 +73,9 @@
                 <el-form-item label="不良品" prop="bad">
                     <el-input v-model="assignData.bad" @input="calcUnassign" />
                 </el-form-item>
+                <el-form-item label="不良品2" prop="bad">
+                    <el-input v-model="assignData.bad2" @input="calcUnassign" />
+                </el-form-item>
                 <el-form-item label="未分配" prop="unassign">
                     <span>{{ assignData.unassign }}</span>
                 </el-form-item>
@@ -115,6 +119,7 @@ export default {
                 weituonum: 0,
                 good: 0,
                 bad: 0,
+                bad2: 0,
                 unassign: 0,
             },
             rules: {
@@ -161,7 +166,7 @@ export default {
             })
         },
         calcUnassign() {
-            this.assignData.unassign = this.assignData.weituonum - this.assignData.good - this.assignData.bad
+            this.assignData.unassign = this.assignData.weituonum - this.assignData.good - this.assignData.bad - this.assignData.bad2
         },
         check(list) {
             console.log("勾选", list)
@@ -229,6 +234,7 @@ export default {
                 weituonum: row.weituonum,
                 good: row.good,
                 bad: row.bad,
+                bad2: row.bad2,
                 unassign: row.unassign,
             }
             this.dialogFormVisible = true
@@ -250,6 +256,7 @@ export default {
                     let info = {
                         good: assignData.good,
                         bad: assignData.bad,
+                        bad2: assignData.bad2,
                         unassign: assignData.unassign,
                     }
                     if (assignData.unassign === 0) {
@@ -268,6 +275,7 @@ export default {
                         if (item.id == id) {
                             item.good = assignData.good
                             item.bad = assignData.bad
+                            item.bad2 = assignData.bad2
                             item.unassign = assignData.unassign
                             item.gongstatus = gongstatus
                         }
@@ -278,6 +286,7 @@ export default {
                         if (item.id == id) {
                             item.good = assignData.good
                             item.bad = assignData.bad
+                            item.bad2 = assignData.bad2
                             item.unassign = assignData.unassign
                             item.gongstatus = gongstatus
                         }
@@ -456,9 +465,16 @@ export default {
             })
         },
         formatJson(filterVal) {
-            return this.list.map((v, idx) =>
+            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+            return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1
+                    v.gongstatus === 0
+                        ? (v.gongstatus = "已完成")
+                        : v.gongstatus === 1
+                        ? (v.gongstatus = "待出货")
+                        : (v.gongstatus = "未完成")
+                    v.type === 1 ? (v.type = "良品") : (v.type = "不良品")
                     return v[j]
                 })
             )

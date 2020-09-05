@@ -63,26 +63,6 @@
                 </tr>
             </table>
 
-            <!-- <el-table
-                :data="list"
-                type="flex"
-                id="manage-table"
-                class="manage-table"
-                :cell-style="tableCellStyle"
-                :header-cell-style="tableHeaderCellStyle"
-            >
-                <el-table-column type="index" label="" min-width="4%"></el-table-column>
-                <el-table-column min-width="10%" align="center" prop="tuogongid" label="" show-overflow-tooltip />
-                <el-table-column min-width="10%" align="center" prop="gongid" label="" show-overflow-tooltip />
-                <el-table-column min-width="8%" align="center" prop="haotou" label="" show-overflow-tooltip />
-                <el-table-column min-width="8%" align="center" prop="weituonum" label="" show-overflow-tooltip />
-                <el-table-column min-width="8%" align="center" prop="customname" label="" show-overflow-tooltip />
-                <el-table-column min-width="8%" align="center" prop="branchname" label="" show-overflow-tooltip />
-                <el-table-column min-width="8%" align="center" prop="brandname" label="" show-overflow-tooltip />
-                <el-table-column min-width="16%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
-                <el-table-column min-width="6%" align="center" prop="good" label="良品" show-overflow-tooltip />
-                <el-table-column min-width="6%" align="center" prop="bad" label="不良品" show-overflow-tooltip />
-            </el-table> -->
             <div class="box-operator">{{ "发货代表：" + info.operator }}</div>
         </div>
     </div>
@@ -117,53 +97,11 @@ export default {
                 // 以服务的方式调用的 Loading 需要异步关闭
                 loadingInstance.close()
             })
-            console.log("工厂管理", res)
             if (res.code === 0) {
-                // _this.list = [
-                //     {
-                //         address: "广东省中山市中山路1号",
-                //         assignid: "PH13459183990",
-                //         bad: 0,
-                //         branchid: 5,
-                //         branchname: "部门2",
-                //         brandid: 16,
-                //         brandname: "111321",
-                //         customid: 1,
-                //         customname: "客户1客户1客户1客户1",
-                //         deliverytime: "2020-08-25T00:00:00.000Z",
-                //         desc: "111客户1客户1客户1客户1客户1客户1客户1客户1",
-                //         gongid: 1523123,
-                //         gongstatus: 1,
-                //         good: 153,
-                //         haotou: 15,
-                //         id: 32,
-                //         lastedittime: "2020-08-24T06:34:07.000Z",
-                //         liaoid: 15232322323,
-                //         linkid: 15,
-                //         operator: "admin",
-                //         role: "一厂",
-                //         tuogongid: "1532412312423",
-                //         tuogongtime: "2020-08-23T00:00:00.000Z",
-                //         tuogongtype: 1,
-                //         type: 1,
-                //         unassign: 0,
-                //         weituonum: 1523,
-                //         writetime: "2020-08-24T06:34:07.000Z",
-                //     },
-                // ]
                 _this.list = res.data
                 _this.originList = res.data
             }
         })
-
-        // let box = document.getElementById("manage-table")
-        // let tables = document.getElementsByTagName("table")
-        // var arr = [...tables]
-        // console.log("tables", tables, arr)
-        // for (let i = 0; i < arr.length; i++) {
-        //     console.log("element", arr[i])
-        //     arr[i].setAttribute("border", "1px")
-        // }
     },
     methods: {
         tableCellStyle() {
@@ -178,11 +116,8 @@ export default {
             printJS({
                 printable: "view-box",
                 type: "html",
-                // header: "XXX公司",
                 headerStyle: "text-align: center",
                 css: "https://js.ibaotu.com/revision/plugins/print.css",
-                // style: ".manage-table{width: 100%;text-align: center;border: 2px solid #000000;}",
-                // targetStyle: ["border: 2px solid #000000"],
             })
         },
     },
@@ -235,7 +170,7 @@ export default {
 
 .box-infos {
     box-sizing: border-box;
-    padding: 25px 40px 10px;
+    padding: 25px 0 10px;
     height: 66px;
     line-height: 16px;
 }
@@ -253,7 +188,6 @@ export default {
 }
 
 .box-operator {
-    padding-left: 40px;
     margin-top: 30px;
     height: 16px;
     line-height: 16px;
@@ -265,6 +199,13 @@ export default {
 
 .table-box {
     width: 100%;
+}
+
+.table-box th {
+    padding: 10px 0;
+}
+.table-box td {
+    padding: 10px 0;
 }
 
 .table-td__span {

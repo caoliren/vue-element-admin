@@ -1,12 +1,9 @@
 <template>
     <div class="g-userManage">
         <div class="manage-top">
-            <!-- <el-input v-model="searchWord" class="u-inp" placeholder="请输入托工单号/工单号" />
-            <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
-            </el-date-picker>
-            <el-button type="primary" @click="search">搜索</el-button>
-            <el-button @click="reset">重置</el-button> -->
-            <el-button class="stat-export" type="primary" @click="exportOrder">导出</el-button>
+            <el-button :loading="downloadLoading" class="manage-export" type="primary" icon="el-icon-download" @click="handleDownload">
+                导出
+            </el-button>
         </div>
         <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
@@ -54,37 +51,11 @@ export default {
             total: 0,
             loading: false,
             currentPage: 1,
-            assignData: {
-                weituonum: 0,
-                good: 0,
-                bad: 0,
-                unassign: 0,
-            },
-            // rules: {
-            //     good: [{ required: true, message: "请输入良品数量", trigger: "change" }],
-            //     bad: [{ required: true, message: "请输入不良品数量", trigger: "change" }],
-            // },
+            downloadLoading: false,
         }
     },
     created() {
         this.getList(true)
-        // const _this = this
-        // let status = this.$route.query.status
-        // Loading.service()
-        // findStatHistory({
-        //     role: _this.roles[0],
-        // }).then(res => {
-        //     let loadingInstance = Loading.service()
-        //     _this.$nextTick(() => {
-        //         // 以服务的方式调用的 Loading 需要异步关闭
-        //         loadingInstance.close()
-        //     })
-        //     console.log("盘点记录", res)
-        //     if (res.code === 0) {
-        //         _this.list = res.data
-        //         _this.originList = res.data
-        //     }
-        // })
     },
     computed: {
         ...mapGetters(["name", "roles"]),
@@ -118,9 +89,6 @@ export default {
                     _this.originTotal = data.total
                 }
             })
-        },
-        calcUnassign() {
-            this.assignData.unassign = this.assignData.weituonum - this.assignData.good - this.assignData.bad
         },
         check(list) {
             console.log("勾选", list)
@@ -180,163 +148,28 @@ export default {
             this.modeSearch = false
             this.currentPage = 1
         },
-        doAssign(row) {
-            this.currentId = row.id
-            this.assignData = {
-                weituonum: row.weituonum,
-                good: row.good,
-                bad: row.bad,
-                unassign: row.unassign,
-            }
-            this.dialogFormVisible = true
-            this.$nextTick(() => {
-                this.$refs["dataForm1"].clearValidate()
+        handleDownload() {
+            this.downloadLoading = true
+            import("@/vendor/Export2Excel").then(excel => {
+                const tHeader = ["序号", "盘点日期", "逾期(单)", "交期(单)", "正常(单)", "完成出货(单)", "操作员"]
+                const filterVal = ["index", "stattime", "overdue", "delivery", "normal", "exportnum", "operator"]
+                const data = this.formatJson(filterVal)
+                excel.export_json_to_excel({
+                    header: tHeader,
+                    data,
+                    filename: "盘点历史",
+                })
+                this.downloadLoading = false
             })
         },
-        assignConfirm() {
-            const _this = this
-            let id = _this.currentId
-            let assignData = _this.assignData
-            let gongstatus = -1
-            if (assignData.unassign < 0) {
-                _this.$message("未分配数量不能为负数！")
-                return
-            }
-            _this.$refs["dataForm1"].validate(valid => {
-                if (valid) {
-                    let info = {
-                        good: assignData.good,
-                        bad: assignData.bad,
-                        unassign: assignData.unassign,
-                    }
-                    if (assignData.unassign === 0) {
-                        info.gongstatus = 0
-                        gongstatus = 0
-                    }
-                    let data = {
-                        id,
-                        info,
-                    }
-                    _this.loading = true
-                    update(data).then(res => {
-                        _this.loading = false
-                    })
-                    _this.list = _this.list.map(item => {
-                        if (item.id == id) {
-                            item.good = assignData.good
-                            item.bad = assignData.bad
-                            item.unassign = assignData.unassign
-                            item.gongstatus = gongstatus
-                        }
-
-                        return item
-                    })
-                    _this.originList = _this.originList.map(item => {
-                        if (item.id == id) {
-                            item.good = assignData.good
-                            item.bad = assignData.bad
-                            item.unassign = assignData.unassign
-                            item.gongstatus = gongstatus
-                        }
-                        return item
-                    })
-                    _this.dialogFormVisible = false
-                }
-            })
-        },
-        toUpdate(row) {
-            console.log(row.id)
-            // row = JSON.stringify(row)
-            this.$router.push({
-                path: "/assign/edit",
-                query: {
-                    id: row.id,
-                },
-            })
-        },
-        del(row) {
-            const _this = this
-            _this
-                .$confirm("此操作将删除该托工单, 是否继续?", "提示", {
-                    confirmButtonText: "确定",
-                    cancelButtonText: "取消",
-                    type: "warning",
+        formatJson(filterVal) {
+            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+            return excelList.map((v, idx) =>
+                filterVal.map((j, i) => {
+                    v.index = idx + 1
+                    return v[j]
                 })
-                .then(() => {
-                    deleteTuogong({
-                        id: row.id,
-                    }).then(res => {
-                        if (res.code === 0) {
-                            _this.list = _this.list.filter(item => {
-                                return item.id !== row.id
-                            })
-                            _this.originList = _this.originList.filter(it => {
-                                return it.id !== item.id
-                            })
-                            _this.$message({
-                                message: "删除成功",
-                                type: "success",
-                            })
-                        }
-                    })
-                })
-                .catch(() => {
-                    console.log("已取消删除")
-                })
-        },
-        exportOrder() {
-            const _this = this
-            let checkedList = _this.checkedList
-            let hasUncomplete = false
-            checkedList.map(item => {
-                if (item.unassign !== 0) {
-                    hasUncomplete = true
-                    _this.$message("未完成的订单不能出单")
-                    return
-                }
-            })
-            if (hasUncomplete) return
-            let promises = []
-            checkedList.map(item => {
-                let newItm = Object.assign({}, item)
-                let itId = item.id
-                delete newItm.id
-                delete newItm.status
-
-                let pro = new Promise((resolve, reject) => {
-                    insertAssignOrder(newItm).then(
-                        res => {
-                            deleteTuogong({
-                                id: itId,
-                            }).then(res => {
-                                if (res.code === 0) {
-                                    _this.list = _this.list.filter(it => {
-                                        return it.id !== itId
-                                    })
-                                    _this.originList = _this.originList.filter(it => {
-                                        return it.id !== itId
-                                    })
-                                }
-                            })
-                            resolve()
-                        },
-                        res => {
-                            reject()
-                        }
-                    )
-                })
-                promises.push(pro)
-            })
-            Promise.all(promises)
-                .then(res => {
-                    _this.$message({
-                        message: "出单成功",
-                        type: "success",
-                    })
-                })
-                .catch(e => {
-                    console.log("error", e)
-                })
+            )
         },
     },
 }

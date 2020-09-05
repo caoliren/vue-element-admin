@@ -1,12 +1,11 @@
 <template>
-    <div id="p-export" class="g-userManage">
+    <div class="g-userManage">
         <div class="manage-top">
-            <el-input v-model="searchWord" class="u-inp" placeholder="请输入出货单号/单位/出货代表" />
+            <el-input v-model="searchWord" class="u-inp" placeholder="请输入出货单号" />
             <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按出货日期搜索">
             </el-date-picker>
             <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
             <el-button @click="reset">重置</el-button>
-            <!-- <el-button class="u-insert" type="primary" @click="doPrint">打印</el-button> -->
             <el-button :loading="downloadLoading" class="manage-export" type="primary" icon="el-icon-download" @click="handleDownload">
                 导出
             </el-button>
@@ -16,24 +15,27 @@
             :data="list"
             border
             type="flex"
-            id="manage-table"
             class="manage-table"
             style="width: 100%"
+            :default-sort="{ prop: 'status', order: 'descending' }"
             @selection-change="check"
         >
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
             <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="exportid" label="出货单号" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="exporttime" label="出货日期" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="role" label="出货单位" show-overflow-tooltip />
-            <el-table-column min-width="8%" align="center" prop="address" label="出货地址" show-overflow-tooltip />
-            <el-table-column min-width="8%" align="center" prop="operator" label="发货代表" show-overflow-tooltip />
-            <el-table-column min-width="12%" align="center" prop label="操作">
+            <el-table-column min-width="10%" align="center" prop="assignid" label="配货单号" show-overflow-tooltip />
+            <el-table-column min-width="8%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
+            <el-table-column min-width="8%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
+            <el-table-column min-width="15%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
+            <el-table-column min-width="14%" align="center" prop="branch" label="部门" show-overflow-tooltip>
                 <template slot-scope="scope">
-                    <el-button type="text" size="small" @click="view(scope.row)">查看</el-button>
-                    <el-button type="text" size="small" @click="view(scope.row)">打印</el-button>
+                    <span>{{ scope.row.customname + "/" + scope.row.branchname }}</span>
                 </template>
             </el-table-column>
+            <el-table-column min-width="10%" align="center" prop="exporttime" label="出货时间" show-overflow-tooltip />
         </el-table>
         <el-pagination
             v-show="total > 0"
@@ -51,9 +53,9 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { searchExport, findExportList } from "@/api/order"
+import { searchExportId, findExportHistory, deleteAssign, insertExportOrder } from "@/api/order"
 import { parseTime } from "@/utils"
-import print from "print-js"
+// import { Loading } from "element-ui"
 
 export default {
     data() {
@@ -69,7 +71,6 @@ export default {
             loading: false,
             currentPage: 1,
             downloadLoading: false,
-            checkedList: [],
         }
     },
     created() {
@@ -79,10 +80,6 @@ export default {
         ...mapGetters(["name", "roles"]),
     },
     methods: {
-        check(list) {
-            console.log("勾选", list)
-            this.checkedList = list
-        },
         handleSizeChange(val) {
             console.log(`每页 ${val} 条`)
         },
@@ -97,7 +94,7 @@ export default {
         getList(isInit) {
             const _this = this
             this.loading = true
-            findExportList({
+            findExportHistory({
                 role: _this.roles[0],
                 page: _this.currentPage,
             }).then(res => {
@@ -131,6 +128,7 @@ export default {
             } else {
                 word = _this.searchWord
                 if (!word.trim()) {
+                    // _this.list = _this.originList
                     _this.reset()
                     return
                 }
@@ -142,7 +140,7 @@ export default {
                 this.currentPage = 1
             }
             this.loading = true
-            searchExport({
+            searchExportId({
                 word,
                 isTime,
                 role: _this.roles[0],
@@ -171,24 +169,90 @@ export default {
             this.currentPage = 1
         },
         view(row) {
-            console.log("data", row)
+            console.log(row.id)
             // row = JSON.stringify(row)
             this.$router.push({
-                path: "/export/view",
+                path: "/assign/view",
                 query: {
-                    data: row,
+                    id: row.id,
                 },
             })
         },
-        doPrint() {
-            printJS({
-                printable: "view-box",
-                type: "html",
-                header: "XXX公司",
-                // headerStyle: "text-align: center",
-                // style: ".manage-table{width: 100%;text-align: center;border: 2px solid #000000;}",
-                // targetStyle: ["border: 2px solid #000000"],
+        del(row) {
+            const _this = this
+            _this
+                .$confirm("此操作将删除该配货单, 是否继续?", "提示", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning",
+                })
+                .then(() => {
+                    deleteAssign({
+                        id: row.id,
+                    }).then(res => {
+                        if (res.code === 0) {
+                            _this.list = _this.list.filter(item => {
+                                return item.id !== row.id
+                            })
+                            _this.originList = _this.originList.filter(item => {
+                                return item.id !== row.id
+                            })
+                            _this.$message({
+                                message: "删除成功",
+                                type: "success",
+                            })
+                        }
+                    })
+                })
+                .catch(() => {
+                    console.log("已取消删除")
+                })
+        },
+        doExport() {
+            const _this = this
+            let checkedList = _this.checkedList
+            let role = checkedList[0].role
+            let canExport = true
+            checkedList.forEach(item => {
+                if (item.role !== role) canExport = false
             })
+            if (!canExport) {
+                _this.$message("同一出货单只能是同一工厂的托工单！")
+                return
+            }
+            checkedList.map(item => {
+                // let newItm = Object.assign({}, item)
+                let itId = item.id
+                delete item.id
+                delete item.status
+
+                deleteAssign({
+                    id: itId,
+                }).then(res => {
+                    if (res.code === 0) {
+                        _this.list = _this.list.filter(it => {
+                            return it.id !== itId
+                        })
+                        _this.originList = _this.originList.filter(it => {
+                            return it.id !== itId
+                        })
+                    }
+                })
+                return item
+            })
+
+            insertExportOrder({
+                list: checkedList,
+                operator: _this.name,
+            }).then(
+                res => {
+                    _this.$message({
+                        message: "出单成功",
+                        type: "success",
+                    })
+                },
+                res => {}
+            )
         },
         handleDownload() {
             this.downloadLoading = true
@@ -196,58 +260,54 @@ export default {
                 const tHeader = [
                     "序号",
                     "出货单号",
-                    "出货代表",
-                    "出货单位",
-                    "出货地址",
+                    "配货单号",
+                    "托工单号",
+                    "工单号",
+                    "料号",
+                    "号头",
+                    "工单状态",
+                    "委托数量",
+                    "良品",
+                    "不良品",
+                    "未分配",
+                    "单位",
+                    "部门",
+                    "品牌代码",
+                    "制程说明",
+                    "类别",
+                    "状态",
+                    "托工日期",
+                    "交货日期",
                     "出货日期",
-                    // "托工单号",
-                    // "工单号",
-                    // "料号",
-                    // "号头",
-                    // "工单状态",
-                    // "委托数量",
-                    // "良品",
-                    // "不良品",
-                    // "未分配",
-                    // "单位",
-                    // "部门",
-                    // "品牌代码",
-                    // "制程说明",
-                    // "类别",
-                    // "状态",
-                    // "托工日期",
-                    // "交货日期",
                 ]
                 const filterVal = [
                     "index",
                     "exportid",
-                    "operator",
-                    "role",
-                    "address",
+                    "assignid",
+                    "tuogongid",
+                    "gongid",
+                    "liaoid",
+                    "haotou",
+                    "gongstatus",
+                    "weituonum",
+                    "good",
+                    "bad",
+                    "unassign",
+                    "customname",
+                    "branchname",
+                    "brandname",
+                    "desc",
+                    "type",
+                    "status",
+                    "tuogongtime",
+                    "deliverytime",
                     "exporttime",
-                    // "tuogongid",
-                    // "gongid",
-                    // "liaoid",
-                    // "haotou",
-                    // "gongstatus",
-                    // "weituonum",
-                    // "good",
-                    // "bad",
-                    // "unassign",
-                    // "customname",
-                    // "branchname",
-                    // "brandname",
-                    // "desc",
-                    // "type",
-                    // "status",
-                    // "tuogongtime",
-                    // "deliverytime",
                 ]
                 const data = this.formatJson(filterVal)
                 excel.export_json_to_excel({
                     header: tHeader,
                     data,
-                    filename: "出货列表",
+                    filename: "出货历史",
                 })
                 this.downloadLoading = false
             })
@@ -257,7 +317,13 @@ export default {
             return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1
-
+                    v.gongstatus === 0
+                        ? (v.gongstatus = "已完成")
+                        : v.gongstatus === 1
+                        ? (v.gongstatus = "待出货")
+                        : (v.gongstatus = "未完成")
+                    v.status === 0 ? (v.status = "交期") : v.status === 1 ? (v.status = "逾期") : (v.status = "正常")
+                    v.type === 1 ? (v.type = "良品") : (v.type = "不良品")
                     return v[j]
                 })
             )
@@ -298,6 +364,7 @@ export default {
     margin-right: 4px;
     font-size: 20px;
 }
+
 .manage-export {
     float: right;
 }

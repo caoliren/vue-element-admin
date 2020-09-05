@@ -139,6 +139,7 @@
                     <span>已分配</span>
                     <span>良品：{{ assignData.good }}</span>
                     <span>不良品：{{ assignData.bad }}</span>
+                    <span>不良品2：{{ assignData.bad2 }}</span>
                 </div>
                 <div class="insert-top__row">
                     <span>未分配：{{ assignData.unassign }}</span>
@@ -232,6 +233,7 @@ export default {
             assignData: {
                 good: 0,
                 bad: 0,
+                bad2: 0,
                 unassign: 0,
             },
             options: [
@@ -380,6 +382,7 @@ export default {
                     _this.assignData = {
                         good: data.good,
                         bad: data.bad,
+                        bad2: data.bad2,
                         unassign: data.unassign,
                     }
                     _this.newGongOrder = Object.assign(_this.newGongOrder, data)
