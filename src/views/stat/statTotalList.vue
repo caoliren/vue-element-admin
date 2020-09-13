@@ -12,7 +12,6 @@
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="gongstatus" label="工单状态" show-overflow-tooltip>
                 <template slot-scope="scope">
@@ -330,6 +329,10 @@ export default {
             const _this = this
             let checkedList = _this.checkedList
             let hasUncomplete = false
+            if (checkedList.length == 0) {
+                _this.$message("请先选择订单")
+                return
+            }
             checkedList.map(item => {
                 if (item.unassign !== 0) {
                     hasUncomplete = true

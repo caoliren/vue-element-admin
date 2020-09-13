@@ -112,6 +112,14 @@ export function search(data) {
     })
 }
 
+export function searchHaotou(data) {
+    return request({
+        url: "/order/searchHaotou",
+        method: "post",
+        data,
+    })
+}
+
 export function searchAssign(data) {
     return request({
         url: "/assign/searchAssign",

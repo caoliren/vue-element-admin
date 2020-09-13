@@ -111,7 +111,6 @@
                 </div>
                 <el-table :data="gongOrderList" border type="flex" style="width: 100%">
                     <el-table-column min-width="8%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-                    <el-table-column min-width="8%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="type" label="类别">
@@ -167,9 +166,6 @@
             >
                 <el-form-item label="工单号" prop="gongid">
                     <el-input v-model="newGongOrder.gongid" />
-                </el-form-item>
-                <el-form-item label="料号" prop="liaoid">
-                    <el-input v-model="newGongOrder.liaoid" />
                 </el-form-item>
                 <el-form-item label="号头" prop="haotou">
                     <el-input v-model="newGongOrder.haotou" />
@@ -320,7 +316,6 @@ export default {
             },
             newGongOrder: {
                 gongid: null,
-                liaoid: null,
                 haotou: null,
                 weituonum: null,
                 type: "",
@@ -334,7 +329,6 @@ export default {
             },
             rules: {
                 gongid: [{ required: true, message: "请填写工单号", trigger: "change" }],
-                liaoid: [{ required: true, message: "请填写料号", trigger: "change" }],
                 haotou: [{ required: true, message: "请填写号头", trigger: "change" }],
                 weituonum: [{ required: true, message: "请填写委托数量", trigger: "change" }],
                 type: [{ required: true, message: "请选择类别", trigger: "change" }],

@@ -87,7 +87,6 @@
                 </div>
                 <el-table :data="gongOrderList" border type="flex" style="width: 100%">
                     <el-table-column min-width="8%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-                    <el-table-column min-width="8%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
                     <el-table-column min-width="8%" align="center" prop="type" label="类别">
@@ -130,9 +129,6 @@
                 <el-form-item label="工单号" prop="gongid">
                     <el-input v-model="newGongOrder.gongid" />
                 </el-form-item>
-                <el-form-item label="料号" prop="liaoid">
-                    <el-input v-model="newGongOrder.liaoid" />
-                </el-form-item>
                 <el-form-item label="号头" prop="haotou">
                     <el-input v-model="newGongOrder.haotou" />
                 </el-form-item>
@@ -167,8 +163,11 @@
                 <el-button @click="dialogFormVisible = false">
                     取消
                 </el-button>
-                <el-button type="primary" @click="createGongOrder">
-                    确定
+                <el-button type="primary" @click="createGongOrder(false)">
+                    保存并关闭
+                </el-button>
+                <el-button type="primary" @click="createGongOrder(true)">
+                    保存并继续
                 </el-button>
             </div>
         </el-dialog>
@@ -272,7 +271,6 @@ export default {
             },
             newGongOrder: {
                 gongid: null,
-                liaoid: null,
                 haotou: null,
                 weituonum: null,
                 type: "",
@@ -285,10 +283,31 @@ export default {
                 desc: "",
             },
             rules: {
-                gongid: [{ required: true, message: "请填写工单号", trigger: "change" }],
-                liaoid: [{ required: true, message: "请填写料号", trigger: "change" }],
-                haotou: [{ required: true, message: "请填写号头", trigger: "change" }],
-                weituonum: [{ required: true, message: "请填写委托数量", trigger: "change" }],
+                gongid: [
+                    { required: true, message: "请填写工单号", trigger: "change" },
+                    ,
+                    {
+                        min: 1,
+                        max: 10,
+                        message: "工单号最长10位数",
+                    },
+                ],
+                haotou: [
+                    { required: true, message: "请填写号头", trigger: "change" },
+                    {
+                        min: 1,
+                        max: 4,
+                        message: "号头最长4位数",
+                    },
+                ],
+                weituonum: [
+                    { required: true, message: "请填写委托数量", trigger: "change" },
+                    {
+                        min: 1,
+                        max: 6,
+                        message: "委托数量最长6位数",
+                    },
+                ],
                 type: [{ required: true, message: "请选择类别", trigger: "change" }],
                 customid: [{ required: true, message: "请选择客户名称", trigger: "change" }],
                 branchid: [{ required: true, message: "请填写部门", trigger: "change" }],
@@ -296,7 +315,14 @@ export default {
             },
             rules2: {
                 role: [{ required: true, message: "请选择所属工厂", trigger: "change" }],
-                tuogongid: [{ required: true, message: "请选择所属工厂", trigger: "change" }],
+                tuogongid: [
+                    { required: true, message: "请输入托工单号", trigger: "change" },
+                    {
+                        min: 1,
+                        max: 8,
+                        message: "托工单号最长8位数",
+                    },
+                ],
                 tuogongtime: [{ required: true, message: "请选择托工日期", trigger: "change" }],
                 tuogongtype: [{ required: true, message: "请选择托工类型", trigger: "change" }],
             },
@@ -427,12 +453,12 @@ export default {
             })
         },
         handleCreate1() {
+            const _this = this
             this.newGongOrder = {
                 gongid: null,
-                liaoid: null,
                 haotou: null,
                 weituonum: null,
-                type: "",
+                type: _this.form.tuogongtype,
                 customid: null,
                 customname: "",
                 branchid: null,
@@ -446,13 +472,19 @@ export default {
                 this.$refs["dataForm1"].clearValidate()
             })
         },
-        createGongOrder() {
+        createGongOrder(saveAndContinue) {
             const _this = this
-            let newG = _this.newGongOrder
+            let newG = Object.assign({}, _this.newGongOrder)
             _this.$refs["dataForm1"].validate(valid => {
                 if (valid) {
+                    console.log("newG", newG)
                     _this.gongOrderList.push(newG)
-                    _this.dialogFormVisible = false
+                    if (saveAndContinue) {
+                        _this.newGongOrder.haotou = null
+                        _this.newGongOrder.weituonum = null
+                    } else {
+                        _this.dialogFormVisible = false
+                    }
                 }
             })
         },

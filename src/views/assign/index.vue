@@ -1,7 +1,7 @@
 <template>
     <div class="g-userManage">
         <div class="manage-top">
-            <el-input v-model="searchWord" class="u-inp" placeholder="请输入托工单号/工单号" />
+            <el-input v-model="searchWord" class="u-inp" placeholder="请输入号头" />
             <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
             </el-date-picker>
             <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
@@ -16,7 +16,6 @@
             <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="gongstatus" label="工单状态" show-overflow-tooltip>
                 <template slot-scope="scope">
@@ -101,7 +100,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { find, search, deleteTuogong, insertAssignOrder } from "@/api/order"
+import { find, search, searchHaotou, deleteTuogong, insertAssignOrder } from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
 // import { Loading } from "element-ui"
@@ -241,7 +240,7 @@ export default {
                 this.currentPage = 1
             }
             this.loading = true
-            search({
+            searchHaotou({
                 word,
                 isTime,
                 role: _this.roles[0],
@@ -382,6 +381,10 @@ export default {
             const _this = this
             let checkedList = _this.checkedList
             let hasUncomplete = false
+            if (checkedList.length == 0) {
+                _this.$message("请先选择订单")
+                return
+            }
             checkedList.map(item => {
                 if (item.unassign !== 0) {
                     hasUncomplete = true
@@ -439,7 +442,6 @@ export default {
                     "序号",
                     "托工单号",
                     "工单号",
-                    "料号",
                     "号头",
                     "工单状态",
                     "委托数量",
@@ -459,7 +461,6 @@ export default {
                     "index",
                     "tuogongid",
                     "gongid",
-                    "liaoid",
                     "haotou",
                     "gongstatus",
                     "weituonum",

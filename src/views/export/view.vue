@@ -20,7 +20,7 @@
                     <th>号头</th>
                     <th>委托数量</th>
                     <th>单位</th>
-                    <th>部门</th>
+                    <!-- <th>部门</th> -->
                     <th>品牌代码</th>
                     <th>制程说明</th>
                     <th>良品</th>
@@ -42,17 +42,17 @@
                     <td align="center">
                         <span class="table-td__span">{{ item.weituonum }}</span>
                     </td>
-                    <td align="center">
+                    <td align="center" class="table-td__customname">
                         <span class="table-td__span">{{ item.customname }}</span>
                     </td>
-                    <td align="center">
+                    <!-- <td align="center">
                         <span class="table-td__span">{{ item.branchname }}</span>
-                    </td>
+                    </td> -->
                     <td align="center">
                         <span class="table-td__span">{{ item.brandname }}</span>
                     </td>
                     <td align="center">
-                        <span class="table-td__span">{{ item.desc }}</span>
+                        <span class="table-td__span table-td__elli">{{ item.desc }}</span>
                     </td>
                     <td align="center">
                         <span class="table-td__span">{{ item.good }}</span>
@@ -63,7 +63,18 @@
                 </tr>
             </table>
 
-            <div class="box-operator">{{ "发货代表：" + info.operator }}</div>
+            <div class="box-bottom">
+                <div class="box-bottom__left">
+                    <div class="box-operator">{{ "制单人员：" + info.operator }}</div>
+                    <div class="box-operator">{{ "发货代表：" }}</div>
+                    <div class="box-operator">{{ "收货代表：" }}</div>
+                </div>
+                <div class="box-bottom__right">
+                    <span class="box-bottom__total">总计：</span>
+                    <span class="box-bottom__span box-bottom__good">{{ total.good }}</span>
+                    <span class="box-bottom__span box-bottom__bad">{{ total.bad }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -72,6 +83,8 @@ import { searchExport, findExportList, findExport } from "@/api/order"
 import { parseTime } from "@/utils"
 import { Loading } from "element-ui"
 import print from "print-js"
+import "./view.scss"
+
 export default {
     data() {
         return {
@@ -82,6 +95,10 @@ export default {
             checkedList: [],
             // needBorder: true,
             info: {},
+            total: {
+                good: 0,
+                bad: 0,
+            },
         }
     },
     created() {
@@ -98,8 +115,18 @@ export default {
                 loadingInstance.close()
             })
             if (res.code === 0) {
-                _this.list = res.data
+                _this.list = [...res.data, ...res.data, ...res.data, ...res.data, ...res.data]
                 _this.originList = res.data
+                let good = 0,
+                    bad = 0
+                for (let i = 0; i < res.data.length; i++) {
+                    good += res.data[i].good
+                    bad += res.data[i].bad
+                }
+                _this.total = {
+                    good,
+                    bad,
+                }
             }
         })
     },
@@ -123,110 +150,3 @@ export default {
     },
 }
 </script>
-<style lang="scss">
-#view-box {
-    width: 100%;
-    margin-top: 20px;
-    background: #fff;
-    padding: 0 30px 30px;
-    /* border: 1px solid #bbb; */
-}
-/*
-#view-box table {
-    border: 1px solid red;
-} */
-
-.export-top {
-    height: 36px;
-    margin: 20px 0;
-}
-
-.u-insert {
-    float: right;
-}
-
-.box-tit {
-    text-align: center;
-}
-
-/* .box-line {
-    width: 40%;
-    height: 2px;
-    margin: 10px auto 15px;
-    background: #000;
-} */
-
-.box-line {
-    width: 350px;
-    height: 0;
-    margin: 10px auto 15px;
-    /* background: #000; */
-    border-bottom: 1px solid #000;
-}
-
-.box-address {
-    text-align: center;
-}
-
-.box-infos {
-    box-sizing: border-box;
-    padding: 25px 0 10px;
-    height: 66px;
-    line-height: 16px;
-}
-
-.box-infos__left {
-    float: left;
-    width: 300px;
-    text-align: left;
-}
-
-.box-infos__right {
-    float: right;
-    width: 300px;
-    text-align: right;
-}
-
-.box-operator {
-    margin-top: 30px;
-    height: 16px;
-    line-height: 16px;
-}
-
-.manage-table {
-    margin-top: 40px;
-}
-
-.table-box {
-    width: 100%;
-}
-
-.table-box th {
-    padding: 10px 0;
-}
-.table-box td {
-    padding: 10px 0;
-}
-
-.table-td__span {
-    display: inline-block;
-    max-width: 120px;
-    font-size: 14px;
-    line-height: 20px;
-    padding: 5px 0;
-}
-
-/* th,
-tr,
-td {
-    padding: 0;
-}
-
-.table-td__span {
-    display: inline-block;
-    max-width: 70px;
-    font-size: 14px;
-    line-height: 20px;
-    padding: 5px 0;
-} */
-</style>

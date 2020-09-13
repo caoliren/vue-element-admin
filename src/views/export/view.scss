@@ -1,0 +1,132 @@
+#view-box {
+    width: 100%;
+    background: #fff;
+    padding: 0 30px 30px;
+}
+.export-top {
+    height: 36px;
+    margin: 20px 0;
+}
+
+.u-insert {
+    float: right;
+}
+
+.box-tit {
+    text-align: center;
+    margin: 0;
+}
+
+.box-line {
+    width: 350px;
+    height: 0;
+    margin: 10px auto;
+    /* background: #000; */
+    border-bottom: 1px solid #000;
+}
+
+.box-address {
+    text-align: center;
+}
+
+.box-infos {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 20px 0;
+    height: 55px;
+    line-height: 16px;
+}
+
+.box-infos__left {
+    float: left;
+    width: 300px;
+    text-align: left;
+}
+
+.box-infos__right {
+    float: right;
+    width: 300px;
+    text-align: right;
+}
+
+.manage-table {
+    margin-top: 40px;
+}
+
+.table-box {
+    width: 100%;
+}
+
+.table-box tr {
+    padding: 0;
+}
+
+.table-box th {
+    padding: 5px 0;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.table-box td {
+    padding: 0;
+    /* word-break: keep-all; */
+    white-space: nowrap;
+}
+.table-box .table-td__customname {
+    white-space: normal;
+}
+
+.table-td__span {
+    position: relative;
+    top: 5px;
+    display: inline-block;
+    max-width: 120px;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 5px 0;
+    vertical-align: middle;
+}
+
+.table-td__elli {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.box-operator {
+    min-width: 160px;
+    padding-right: 30px;
+    height: 16px;
+    line-height: 16px;
+}
+
+.box-bottom {
+    display: flex;
+    justify-content: space-between;
+    height: 16px;
+    margin-top: 20px;
+}
+
+.box-bottom__left {
+    display: flex;
+}
+
+.box-bottom__right {
+    /* float: right; */
+    display: flex;
+}
+
+.box-bottom__span {
+    /* display: inline-block; */
+
+    text-align: center;
+}
+.box-bottom__total {
+    margin-right: 10px;
+}
+.box-bottom__good {
+    width: 40px;
+}
+.box-bottom__bad {
+    width: 60px;
+}

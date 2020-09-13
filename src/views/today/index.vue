@@ -14,7 +14,6 @@
             <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
             <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="liaoid" label="料号" show-overflow-tooltip />
             <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="gongstatus" label="工单状态" show-overflow-tooltip>
                 <template slot-scope="scope">
@@ -421,7 +420,6 @@ export default {
                     "序号",
                     "托工单号",
                     "工单号",
-                    "料号",
                     "号头",
                     "工单状态",
                     "委托数量",
@@ -440,7 +438,6 @@ export default {
                     "index",
                     "tuogongid",
                     "gongid",
-                    "liaoid",
                     "haotou",
                     "gongstatus",
                     "weituonum",

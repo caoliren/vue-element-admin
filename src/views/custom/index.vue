@@ -1,7 +1,7 @@
 <template>
     <div class="g-userManage">
         <div class="g-top">
-            <el-input v-model="searchWord" class="u-inp" placeholder="请输入客户名称/品牌代码" />
+            <el-input v-model="searchWord" class="u-inp" placeholder="请输入客户名称" />
             <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
             <el-button @click="reset">重置</el-button>
         </div>
@@ -228,6 +228,7 @@
     </div>
 </template>
 <script>
+import { mapGetters } from "vuex"
 import {
     search,
     find,
@@ -304,6 +305,9 @@ export default {
     created() {
         this.getList(true)
     },
+    computed: {
+        ...mapGetters(["roles"]),
+    },
     methods: {
         handleCurrentChange1(val) {
             console.log(`当前页: ${val}`)
@@ -335,6 +339,7 @@ export default {
             const _this = this
             this.loading1 = true
             find({
+                role: _this.roles[0],
                 page: _this.currentPage1,
             }).then(res => {
                 this.loading1 = false
@@ -557,6 +562,7 @@ export default {
             }
             search({
                 word,
+                role: _this.roles[0],
                 page: _this.currentPage1,
             }).then(
                 res => {
@@ -602,6 +608,7 @@ export default {
         createCustom1() {
             const _this = this
             let newC = _this.newCustom
+            newC.role = _this.roles[0]
             _this.$refs["dataForm1"].validate(valid => {
                 if (valid) {
                     insert(newC).then(res => {
