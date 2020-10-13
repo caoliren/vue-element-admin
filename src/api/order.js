@@ -199,3 +199,54 @@ export function searchExportId(data) {
         data,
     })
 }
+
+export function orderExportAll() {
+    return request({
+        url: "/order/exportAll",
+        method: "get",
+    })
+}
+
+export function todayExportAll() {
+    return request({
+        url: "/today/exportAll",
+        method: "get",
+    })
+}
+
+export function assignExportAll() {
+    return request({
+        url: "/assign/exportAll",
+        method: "get",
+    })
+}
+// 导出出货管理
+export function exportExportAll() {
+    return request({
+        url: "/export/exportAll",
+        method: "get",
+    })
+}
+// 导出出货历史
+export function exportHistoryAll() {
+    return request({
+        url: "/export/exportHistoryAll",
+        method: "get",
+    })
+}
+
+// 导出盘点历史
+export function statExportAll() {
+    return request({
+        url: "/stat/exportAll",
+        method: "get",
+    })
+}
+// 按分类盘点搜索结果
+export function searchStatForStatus(data) {
+    return request({
+        url: "/stat/searchStatForStatus",
+        method: "post",
+        data,
+    })
+}

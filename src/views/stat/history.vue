@@ -31,7 +31,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { findStatHistory, search } from "@/api/order"
+import { findStatHistory, search, statExportAll } from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
 import { Loading } from "element-ui"
@@ -149,21 +149,42 @@ export default {
             this.currentPage = 1
         },
         handleDownload() {
+            const _this = this
             this.downloadLoading = true
-            import("@/vendor/Export2Excel").then(excel => {
-                const tHeader = ["序号", "盘点日期", "逾期(单)", "交期(单)", "正常(单)", "完成出货(单)", "操作员"]
-                const filterVal = ["index", "stattime", "overdue", "delivery", "normal", "exportnum", "operator"]
-                const data = this.formatJson(filterVal)
-                excel.export_json_to_excel({
-                    header: tHeader,
-                    data,
-                    filename: "盘点历史",
+            let excelList = this.checkedList.length > 0 ? this.checkedList : []
+            if (!excelList.length) {
+                statExportAll().then(res => {
+                    if (res.code === 0) {
+                        excelList = res.data
+
+                        import("@/vendor/Export2Excel").then(excel => {
+                            const tHeader = ["序号", "盘点日期", "逾期(单)", "交期(单)", "正常(单)", "完成出货(单)", "操作员"]
+                            const filterVal = ["index", "stattime", "overdue", "delivery", "normal", "exportnum", "operator"]
+                            const data = _this.formatJson(excelList, filterVal)
+                            excel.export_json_to_excel({
+                                header: tHeader,
+                                data,
+                                filename: "盘点历史",
+                            })
+                            this.downloadLoading = false
+                        })
+                    }
                 })
-                this.downloadLoading = false
-            })
+            } else {
+                import("@/vendor/Export2Excel").then(excel => {
+                    const tHeader = ["序号", "盘点日期", "逾期(单)", "交期(单)", "正常(单)", "完成出货(单)", "操作员"]
+                    const filterVal = ["index", "stattime", "overdue", "delivery", "normal", "exportnum", "operator"]
+                    const data = _this.formatJson(excelList, filterVal)
+                    excel.export_json_to_excel({
+                        header: tHeader,
+                        data,
+                        filename: "盘点历史",
+                    })
+                    this.downloadLoading = false
+                })
+            }
         },
-        formatJson(filterVal) {
-            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+        formatJson(excelList, filterVal) {
             return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1

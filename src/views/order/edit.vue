@@ -174,6 +174,9 @@
                 <el-form-item label="制程说明" prop="desc">
                     <span>{{ newGongOrder.desc }}</span>
                 </el-form-item>
+                <el-form-item label="备注" prop="remark">
+                    <el-input v-model="newGongOrder.remark" />
+                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="dialogFormVisible = false">
@@ -298,6 +301,7 @@ export default {
                 brandid: null,
                 brandname: "",
                 desc: "",
+                remark: "",
             },
             rules: {
                 gongid: [{ required: true, message: "请填写工单号", trigger: "change" }],

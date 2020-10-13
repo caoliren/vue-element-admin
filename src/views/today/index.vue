@@ -11,26 +11,31 @@
         </div>
         <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
             <el-table-column type="selection" min-width="4%" align="center"> </el-table-column>
-            <el-table-column type="index" min-width="4%" align="center" label="序号"> </el-table-column>
-            <el-table-column min-width="10%" align="center" prop="tuogongid" label="托工单号" show-overflow-tooltip />
+            <el-table-column min-width="6%" align="center" prop="brandname" label="品牌代码" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop="gongid" label="工单号" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
+            <el-table-column min-width="8%" align="center" prop="haotou" label="号头" show-overflow-tooltip />
+            <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
             <el-table-column min-width="8%" align="center" prop="gongstatus" label="工单状态" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <span>{{ scope.row.gongstatus === 0 ? "已完成" : scope.row.gongstatus === 1 ? "待出货" : "未完成" }}</span>
                 </template>
             </el-table-column>
-            <el-table-column min-width="8%" align="center" prop="weituonum" label="委托数量" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="good" label="良品" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="bad" label="不良品" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="bad2" label="不良品2" show-overflow-tooltip />
-            <el-table-column min-width="6%" align="center" prop="unassign" label="未分配" show-overflow-tooltip />
-            <el-table-column min-width="12%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
-            <el-table-column min-width="10%" align="center" prop="branch" label="部门" show-overflow-tooltip>
+            <el-table-column min-width="8%" align="center" prop="type" label="类别" sortable>
+                <template slot-scope="scope">
+                    <span>{{ scope.row.type === 1 ? "良品" : "不良品" }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column min-width="4%" align="center" prop="good" label="良品" show-overflow-tooltip />
+            <el-table-column min-width="5%" align="center" prop="bad" label="不良品" show-overflow-tooltip />
+            <el-table-column min-width="5%" align="center" prop="bad2" label="不良品2" show-overflow-tooltip />
+            <el-table-column min-width="5%" align="center" prop="unassign" label="未分配" show-overflow-tooltip />
+            <el-table-column min-width="10%" align="center" prop="desc" label="制程说明" show-overflow-tooltip />
+            <el-table-column min-width="10%" align="center" prop="branch" label="单位" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <span>{{ scope.row.customname + "/" + scope.row.branchname }}</span>
                 </template>
             </el-table-column>
+            <el-table-column min-width="5%" align="center" prop="remark" label="备注" show-overflow-tooltip />
             <el-table-column min-width="10%" align="center" prop label="操作">
                 <template slot-scope="scope">
                     <el-button v-if="scope.row.gongstatus === -1" type="text" size="small" @click="doAssign(scope.row)">分配 </el-button>
@@ -92,7 +97,16 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { findTodayList, find, searchToday, deleteTuogong, insertAssignOrder, deleteAssign, insertExportOrder } from "@/api/order"
+import {
+    todayExportAll,
+    findTodayList,
+    find,
+    searchToday,
+    deleteTuogong,
+    insertAssignOrder,
+    deleteAssign,
+    insertExportOrder,
+} from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
 // import { Loading } from "element-ui"
@@ -414,55 +428,111 @@ export default {
             })
         },
         handleDownload() {
+            const _this = this
             this.downloadLoading = true
-            import("@/vendor/Export2Excel").then(excel => {
-                const tHeader = [
-                    "序号",
-                    "托工单号",
-                    "工单号",
-                    "号头",
-                    "工单状态",
-                    "委托数量",
-                    "良品",
-                    "不良品",
-                    "未分配",
-                    "单位",
-                    "部门",
-                    "品牌代码",
-                    "类别",
-                    "制程说明",
-                    "托工日期",
-                    "交货日期",
-                ]
-                const filterVal = [
-                    "index",
-                    "tuogongid",
-                    "gongid",
-                    "haotou",
-                    "gongstatus",
-                    "weituonum",
-                    "good",
-                    "bad",
-                    "unassign",
-                    "customname",
-                    "branchname",
-                    "brandname",
-                    "type",
-                    "desc",
-                    "tuogongtime",
-                    "deliverytime",
-                ]
-                const data = this.formatJson(filterVal)
-                excel.export_json_to_excel({
-                    header: tHeader,
-                    data,
-                    filename: "今日工单",
+            let excelList = this.checkedList.length > 0 ? this.checkedList : []
+            if (!excelList.length) {
+                todayExportAll().then(res => {
+                    if (res.code === 0) {
+                        excelList = res.data.data
+                        import("@/vendor/Export2Excel").then(excel => {
+                            const tHeader = [
+                                "序号",
+                                "品牌代码",
+                                "托工单号",
+                                "工单号",
+                                "号头",
+                                "工单状态",
+                                "委托数量",
+                                "良品",
+                                "不良品",
+                                "未分配",
+                                "单位",
+                                "部门",
+                                "类别",
+                                "制程说明",
+                                "托工日期",
+                                "交货日期",
+                            ]
+                            const filterVal = [
+                                "index",
+                                "brandname",
+                                "tuogongid",
+                                "gongid",
+                                "haotou",
+                                "gongstatus",
+                                "weituonum",
+                                "good",
+                                "bad",
+                                "unassign",
+                                "customname",
+                                "branchname",
+                                "type",
+                                "desc",
+                                "tuogongtime",
+                                "deliverytime",
+                            ]
+                            const data = _this.formatJson(excelList, filterVal)
+                            excel.export_json_to_excel({
+                                header: tHeader,
+                                data,
+                                filename: "今日工单",
+                            })
+                            this.downloadLoading = false
+                        })
+                    } else {
+                        this.downloadLoading = false
+                    }
                 })
-                this.downloadLoading = false
-            })
+            } else {
+                import("@/vendor/Export2Excel").then(excel => {
+                    const tHeader = [
+                        "序号",
+                        "品牌代码",
+                        "托工单号",
+                        "工单号",
+                        "号头",
+                        "工单状态",
+                        "委托数量",
+                        "良品",
+                        "不良品",
+                        "未分配",
+                        "单位",
+                        "部门",
+                        "类别",
+                        "制程说明",
+                        "托工日期",
+                        "交货日期",
+                    ]
+                    const filterVal = [
+                        "index",
+                        "brandname",
+                        "tuogongid",
+                        "gongid",
+                        "haotou",
+                        "gongstatus",
+                        "weituonum",
+                        "good",
+                        "bad",
+                        "unassign",
+                        "customname",
+                        "branchname",
+                        "type",
+                        "desc",
+                        "tuogongtime",
+                        "deliverytime",
+                    ]
+                    const data = _this.formatJson(excelList, filterVal)
+                    excel.export_json_to_excel({
+                        header: tHeader,
+                        data,
+                        filename: "今日工单",
+                    })
+                    this.downloadLoading = false
+                })
+            }
         },
-        formatJson(filterVal) {
-            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+        formatJson(excelList, filterVal) {
             return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1

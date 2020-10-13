@@ -1,11 +1,11 @@
 <template>
     <div class="g-userManage">
         <div class="manage-top">
-            <!-- <el-input v-model="searchWord" class="u-inp" placeholder="请输入托工单号/工单号" />
-            <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
-            </el-date-picker>
-            <el-button type="primary" @click="search">搜索</el-button>
-            <el-button @click="reset">重置</el-button> -->
+            <el-input v-model="searchWord" class="u-inp" placeholder="请输入托工单号/工单号" />
+            <!-- <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
+            </el-date-picker> -->
+            <el-button type="primary" @click="searchFnc">搜索</el-button>
+            <el-button @click="reset">重置</el-button>
             <el-button class="stat-export" type="primary" @click="exportOrder">出单</el-button>
         </div>
         <el-table v-loading="loading" :data="list" border type="flex" class="manage-table" style="width: 100%" @selection-change="check">
@@ -178,11 +178,12 @@ export default {
         dateChange(date) {
             this.searchDate = parseTime(date).split(" ")[0]
         },
-        search() {
+        searchFnc() {
             const _this = this
             let isTime = false
             let word = ""
             let date = _this.searchDate
+
             if (date) {
                 _this.searchWord = ""
                 word = date
@@ -190,33 +191,43 @@ export default {
             } else {
                 word = _this.searchWord
                 if (!word.trim()) {
-                    _this.list = _this.originList
+                    // _this.list = _this.originList
+                    _this.reset()
                     return
                 }
             }
-            _this.loading = true
+            if (!this.modeSearch) {
+                this.modeSearch = true
+                this.currentPage = 1
+            }
+            this.loading = true
             search({
                 word,
                 isTime,
                 role: _this.roles[0],
+                page: _this.currentPage,
             }).then(res => {
-                console.log("托工单查询", res)
                 _this.loading = false
                 if (res.code === 0) {
                     const data = res.data
-                    if (!data.length) {
+                    if (!data.data.length) {
                         _this.$message("未找到相关内容")
                         _this.list = []
+                        _this.total = 0
                     } else {
-                        _this.list = data
+                        _this.list = data.data
+                        _this.total = data.total
                     }
                 }
             })
         },
         reset() {
             this.list = this.originList
+            this.total = this.originTotal
             this.searchWord = ""
             this.searchDate = ""
+            this.modeSearch = false
+            this.currentPage = 1
         },
         doAssign(row) {
             this.currentId = row.id

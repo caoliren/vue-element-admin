@@ -7,6 +7,7 @@
             <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
             <el-button @click="reset">重置</el-button>
             <el-button class="u-insert" type="primary" @click="doExport">出货</el-button>
+            <span class="top-weituoCount">总委托数：{{ weituoCount }}</span>
             <el-button :loading="downloadLoading" class="manage-export" type="primary" icon="el-icon-download" @click="handleDownload">
                 导出
             </el-button>
@@ -70,7 +71,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { searchAssign, findAssignList, deleteAssign, insertExportOrder } from "@/api/order"
+import { searchAssign, findAssignList, deleteAssign, insertExportOrder, assignExportAll } from "@/api/order"
 import { parseTime } from "@/utils"
 // import { Loading } from "element-ui"
 
@@ -88,6 +89,7 @@ export default {
             loading: false,
             currentPage: 1,
             downloadLoading: false,
+            weituoCount: 0,
         }
     },
     created() {
@@ -122,6 +124,7 @@ export default {
                     if (isInit) _this.originList = data.data
                     _this.total = data.total
                     _this.originTotal = data.total
+                    _this.weituoCount = data.weituoNum
                 }
             })
         },
@@ -272,59 +275,119 @@ export default {
             )
         },
         handleDownload() {
+            assignExportAll
+            const _this = this
             this.downloadLoading = true
-            import("@/vendor/Export2Excel").then(excel => {
-                const tHeader = [
-                    "序号",
-                    "配货单号",
-                    "托工单号",
-                    "工单号",
-                    "号头",
-                    "工单状态",
-                    "委托数量",
-                    "良品",
-                    "不良品",
-                    "未分配",
-                    "单位",
-                    "部门",
-                    "品牌代码",
-                    "制程说明",
-                    "类别",
-                    "状态",
-                    "托工日期",
-                    "交货日期",
-                ]
-                const filterVal = [
-                    "index",
-                    "assignid",
-                    "tuogongid",
-                    "gongid",
-                    "haotou",
-                    "gongstatus",
-                    "weituonum",
-                    "good",
-                    "bad",
-                    "unassign",
-                    "customname",
-                    "branchname",
-                    "brandname",
-                    "desc",
-                    "type",
-                    "status",
-                    "tuogongtime",
-                    "deliverytime",
-                ]
-                const data = this.formatJson(filterVal)
-                excel.export_json_to_excel({
-                    header: tHeader,
-                    data,
-                    filename: "待出货列表",
+            let excelList = this.checkedList.length > 0 ? this.checkedList : []
+            if (!excelList.length) {
+                assignExportAll().then(res => {
+                    if (res.code === 0) {
+                        excelList = res.data
+
+                        import("@/vendor/Export2Excel").then(excel => {
+                            const tHeader = [
+                                "序号",
+                                "品牌代码",
+                                "配货单号",
+                                "托工单号",
+                                "工单号",
+                                "号头",
+                                "工单状态",
+                                "委托数量",
+                                "良品",
+                                "不良品",
+                                "未分配",
+                                "单位",
+                                "部门",
+                                "制程说明",
+                                "类别",
+                                "状态",
+                                "托工日期",
+                                "交货日期",
+                            ]
+                            const filterVal = [
+                                "index",
+                                "brandname",
+                                "assignid",
+                                "tuogongid",
+                                "gongid",
+                                "haotou",
+                                "gongstatus",
+                                "weituonum",
+                                "good",
+                                "bad",
+                                "unassign",
+                                "customname",
+                                "branchname",
+                                "desc",
+                                "type",
+                                "status",
+                                "tuogongtime",
+                                "deliverytime",
+                            ]
+                            const data = _this.formatJson(excelList, filterVal)
+                            excel.export_json_to_excel({
+                                header: tHeader,
+                                data,
+                                filename: "待出货列表",
+                            })
+                            this.downloadLoading = false
+                        })
+                    }
                 })
-                this.downloadLoading = false
-            })
+            } else {
+                import("@/vendor/Export2Excel").then(excel => {
+                    const tHeader = [
+                        "序号",
+                        "品牌代码",
+                        "配货单号",
+                        "托工单号",
+                        "工单号",
+                        "号头",
+                        "工单状态",
+                        "委托数量",
+                        "良品",
+                        "不良品",
+                        "未分配",
+                        "单位",
+                        "部门",
+                        "制程说明",
+                        "类别",
+                        "状态",
+                        "托工日期",
+                        "交货日期",
+                    ]
+                    const filterVal = [
+                        "index",
+                        "brandname",
+                        "assignid",
+                        "tuogongid",
+                        "gongid",
+                        "haotou",
+                        "gongstatus",
+                        "weituonum",
+                        "good",
+                        "bad",
+                        "unassign",
+                        "customname",
+                        "branchname",
+                        "desc",
+                        "type",
+                        "status",
+                        "tuogongtime",
+                        "deliverytime",
+                    ]
+                    const data = _this.formatJson(excelList, filterVal)
+                    excel.export_json_to_excel({
+                        header: tHeader,
+                        data,
+                        filename: "待出货列表",
+                    })
+                    this.downloadLoading = false
+                })
+            }
         },
-        formatJson(filterVal) {
-            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+        formatJson(excelList, filterVal) {
             return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1
@@ -359,6 +422,11 @@ export default {
     .u-insert {
         float: right;
     }
+}
+
+.top-weituoCount {
+    margin-left: 20px;
+    color: #606266;
 }
 
 .top__date {

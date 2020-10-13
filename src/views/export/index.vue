@@ -51,7 +51,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { searchExport, findExportList } from "@/api/order"
+import { searchExport, findExportList, exportExportAll } from "@/api/order"
 import { parseTime } from "@/utils"
 import print from "print-js"
 
@@ -191,67 +191,41 @@ export default {
             })
         },
         handleDownload() {
+            const _this = this
             this.downloadLoading = true
-            import("@/vendor/Export2Excel").then(excel => {
-                const tHeader = [
-                    "序号",
-                    "出货单号",
-                    "出货代表",
-                    "出货单位",
-                    "出货地址",
-                    "出货日期",
-                    // "托工单号",
-                    // "工单号",
-                    // "号头",
-                    // "工单状态",
-                    // "委托数量",
-                    // "良品",
-                    // "不良品",
-                    // "未分配",
-                    // "单位",
-                    // "部门",
-                    // "品牌代码",
-                    // "制程说明",
-                    // "类别",
-                    // "状态",
-                    // "托工日期",
-                    // "交货日期",
-                ]
-                const filterVal = [
-                    "index",
-                    "exportid",
-                    "operator",
-                    "role",
-                    "address",
-                    "exporttime",
-                    // "tuogongid",
-                    // "gongid",
-                    // "haotou",
-                    // "gongstatus",
-                    // "weituonum",
-                    // "good",
-                    // "bad",
-                    // "unassign",
-                    // "customname",
-                    // "branchname",
-                    // "brandname",
-                    // "desc",
-                    // "type",
-                    // "status",
-                    // "tuogongtime",
-                    // "deliverytime",
-                ]
-                const data = this.formatJson(filterVal)
-                excel.export_json_to_excel({
-                    header: tHeader,
-                    data,
-                    filename: "出货列表",
+            let excelList = this.checkedList.length > 0 ? this.checkedList : []
+            if (!excelList.length) {
+                exportExportAll().then(res => {
+                    if (res.code === 0) {
+                        excelList = res.data
+                        import("@/vendor/Export2Excel").then(excel => {
+                            const tHeader = ["序号", "出货单号", "出货代表", "出货单位", "出货地址", "出货日期"]
+                            const filterVal = ["index", "exportid", "operator", "role", "address", "exporttime"]
+                            const data = _this.formatJson(excelList, filterVal)
+                            excel.export_json_to_excel({
+                                header: tHeader,
+                                data,
+                                filename: "出货列表",
+                            })
+                            this.downloadLoading = false
+                        })
+                    }
                 })
-                this.downloadLoading = false
-            })
+            } else {
+                import("@/vendor/Export2Excel").then(excel => {
+                    const tHeader = ["序号", "出货单号", "出货代表", "出货单位", "出货地址", "出货日期"]
+                    const filterVal = ["index", "exportid", "operator", "role", "address", "exporttime"]
+                    const data = _this.formatJson(excelList, filterVal)
+                    excel.export_json_to_excel({
+                        header: tHeader,
+                        data,
+                        filename: "出货列表",
+                    })
+                    this.downloadLoading = false
+                })
+            }
         },
-        formatJson(filterVal) {
-            let excelList = this.checkedList.length > 0 ? this.checkedList : this.list
+        formatJson(excelList, filterVal) {
             return excelList.map((v, idx) =>
                 filterVal.map((j, i) => {
                     v.index = idx + 1
