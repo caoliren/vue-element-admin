@@ -2,6 +2,7 @@
     <div class="g-userManage">
         <div class="manage-top">
             <el-input v-model="searchWord" class="u-inp" placeholder="请输入号头" />
+            <el-input v-model="searchBrandname" class="u-inp" placeholder="请输入品牌代码" />
             <el-date-picker v-model="searchDate" class="top__date" type="date" @change="dateChange" placeholder="按托工日期搜索">
             </el-date-picker>
             <el-button type="primary" @click="searchFnc(true)">搜索</el-button>
@@ -139,6 +140,7 @@ export default {
             currentId: null,
             searchWord: "",
             searchDate: "",
+            searchBrandname: "",
             dialogTit: "配单",
             dialogFormVisible: false,
             checkedList: [],
@@ -226,13 +228,21 @@ export default {
         searchFnc(fromSearchBtn) {
             const _this = this
             let isTime = false
+            let isSearchBrandname = false
             let word = ""
             let date = _this.searchDate
-
+            let searchBrandname = _this.searchBrandname
+            // 有日期搜日期，没日期搜号头
             if (date) {
                 _this.searchWord = ""
+                _this.searchBrandname = ""
                 word = date
                 isTime = true
+            } else if (searchBrandname) {
+                _this.searchWord = ""
+                _this.searchDate = ""
+                word = searchBrandname
+                isSearchBrandname = true
             } else {
                 word = _this.searchWord
                 if (!word.trim()) {
@@ -251,6 +261,7 @@ export default {
             searchHaotou({
                 word,
                 isTime,
+                isSearchBrandname,
                 role: _this.roles[0],
                 page: _this.currentPage,
             }).then(res => {
@@ -273,6 +284,7 @@ export default {
             this.total = this.originTotal
             this.searchWord = ""
             this.searchDate = ""
+            this.searchBrandname = ""
             this.modeSearch = false
             this.currentPage = 1
         },
