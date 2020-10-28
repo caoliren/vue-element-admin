@@ -107,7 +107,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex"
-import { find, search, searchHaotou, deleteTuogong, insertAssignOrder, orderExportAll } from "@/api/order"
+import { find, jointSearch, search, searchHaotou, deleteTuogong, insertAssignOrder, orderExportAll } from "@/api/order"
 import { update } from "@/api/order"
 import { parseTime } from "@/utils"
 // import { Loading } from "element-ui"
@@ -227,28 +227,33 @@ export default {
         },
         searchFnc(fromSearchBtn) {
             const _this = this
-            let isTime = false
-            let isSearchBrandname = false
-            let word = ""
-            let date = _this.searchDate
-            let searchBrandname = _this.searchBrandname
-            // 有日期搜日期，没日期搜号头
-            if (date) {
-                _this.searchWord = ""
-                _this.searchBrandname = ""
-                word = date
-                isTime = true
-            } else if (searchBrandname) {
-                _this.searchWord = ""
-                _this.searchDate = ""
-                word = searchBrandname
-                isSearchBrandname = true
-            } else {
-                word = _this.searchWord
-                if (!word.trim()) {
-                    _this.reset()
-                    return
-                }
+            // let isTime = false
+            // let isSearchBrandname = false
+            // let word = ""
+            // let date = _this.searchDate
+            // let searchBrandname = _this.searchBrandname
+            // // 有日期搜日期，没日期搜号头
+            // if (date) {
+            //     _this.searchWord = ""
+            //     _this.searchBrandname = ""
+            //     word = date
+            //     isTime = true
+            // } else if (searchBrandname) {
+            //     _this.searchWord = ""
+            //     _this.searchDate = ""
+            //     word = searchBrandname
+            //     isSearchBrandname = true
+            // } else {
+            //     word = _this.searchWord
+            //     if (!word.trim()) {
+            //         _this.reset()
+            //         return
+            //     }
+            // }
+
+            if (!_this.searchWord.trim()) {
+                _this.reset()
+                return
             }
 
             if (!this.modeSearch) {
@@ -258,10 +263,11 @@ export default {
                 this.currentPage = 1
             }
             this.loading = true
-            searchHaotou({
-                word,
-                isTime,
-                isSearchBrandname,
+
+            jointSearch({
+                haotou: _this.searchWord.trim(),
+                time: _this.searchDate.trim(),
+                brandname: _this.searchBrandname.trim(),
                 role: _this.roles[0],
                 page: _this.currentPage,
             }).then(res => {
@@ -278,6 +284,26 @@ export default {
                     }
                 }
             })
+            // searchHaotou({
+            //     word,
+            //     isTime,
+            //     isSearchBrandname,
+            //     role: _this.roles[0],
+            //     page: _this.currentPage,
+            // }).then(res => {
+            //     _this.loading = false
+            //     if (res.code === 0) {
+            //         const data = res.data
+            //         if (!data.data.length) {
+            //             _this.$message("未找到相关内容")
+            //             _this.list = []
+            //             _this.total = 0
+            //         } else {
+            //             _this.list = data.data
+            //             _this.total = data.total
+            //         }
+            //     }
+            // })
         },
         reset() {
             this.list = this.originList

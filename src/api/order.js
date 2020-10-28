@@ -104,6 +104,14 @@ export function insertExportOrder(data) {
     })
 }
 
+export function jointSearch(data) {
+    return request({
+        url: "/order/searchJoint",
+        method: "post",
+        data,
+    })
+}
+
 export function search(data) {
     return request({
         url: "/order/search",
