@@ -116,7 +116,9 @@ export default {
             })
             if (res.code === 0) {
                 // _this.list = res.data
-                _this.list = [...res.data, ...res.data, ...res.data, ...res.data, ...res.data]
+                // _this.list = [...res.data, ...res.data, ...res.data, ...res.data, ...res.data]
+
+                _this.list = [...res.data]
                 _this.originList = res.data
                 let good = 0,
                     bad = 0
